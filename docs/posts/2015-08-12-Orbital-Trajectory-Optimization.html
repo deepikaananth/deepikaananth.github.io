@@ -1,0 +1,80 @@
+<!doctype html>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<html lang="en">
+
+<style>
+        body {
+                background-color: #FFFFF9;
+        }
+</style>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>My Hakyll Blog - The Dynamic Travelling Salesman</title>
+        <link rel="stylesheet" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    <head>
+    <body>
+        <header>
+
+	    <div class="logo">
+                <a class="small" href="../">Deepika Anantharaman</a>
+            </div>
+	    <nav>
+                <a class="small" href="../about.html">About</a>
+                <a class="small" href="../contact.html">Contact</a>
+                <a class="small" href="../archive.html">Archive</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>The Dynamic Travelling Salesman</h1>
+            <article>
+<style>
+        body {
+                background-color: #FFFFFF;
+        }
+</style>
+    <section class="header">
+        Posted on August 12, 2015
+        
+    </section>
+
+    <section>
+	<section id="table-of-contents" class="toc-content">
+<h4><u> Table of Contents</u></h4>
+<ol type="1">
+<li><a href="#introduction-and-motivation">Introduction and Motivation</a></li>
+<li><a href="#elliptical-orbits-problem-set-up">Elliptical orbits - problem set up</a></li>
+<li><a href="#ant-colony-optimization">Ant Colony optimization</a></li>
+<li><a href="#results">Results</a>
+<a href="#references">References</a></li>
+</ol>
+</section>
+<section id="introduction-and-motivation" class="post-body">
+<h2>Introduction and Motivation</h2>
+<p>As a part of a project in the Fall of 2022, a small team and I considered trying out some spacecraft tracjectory optimization and began testing out the waters from without too much research by setting up the problem. Accounting from inputs from all three team members soon materialized into a hypothetical system with some <span class="math inline">\(n\)</span> number of space debris pieces in highly absurd elliptical orbits that our spacecraft would have to “intercept” to collect<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> . Such a space trash collector<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> might not be able to collect too many junk pieces because of physical constraints or power (fuel) constraints, and ours was a highly fantastical set up, but the problem was irresistible because it presented us with the opportunity to attempt to code up a (time-varying) travelling salesman problem!</p>
+<p>The travelling salesman is a combinatorial optimization problem where the objective is for the salesman to find the shortest path between some <span class="math inline">\(n\)</span> cities and go back to where he started. Now imagine a similar problem with space debris collection, where the pieces of debris are all continuously moving. This is the time-varying travelling salesman.</p>
+</section>
+<section id="references" class="post-footnotes">
+<h4>References</h4>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="#https://www.nasa.gov/feature/brane-craft/">“Brane”- membrane spacecraft space debris collector</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="#https://astroscale.com/astroscales-elsa-d-mission-successfully-completes-complex-rendezvous-operation/">Astroscale</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+    </section>
+</article>
+
+        </main>
+
+        <footer>
+            website source code on <a href="my_repository_link">github</a>
+        </footer>
+    </body>
+</html>

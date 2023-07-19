@@ -1,0 +1,150 @@
+<!doctype html>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<html lang="en">
+
+<style>
+        body {
+                background-color: #FFFFF9;
+        }
+</style>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>My Hakyll Blog - The Alpha Shape</title>
+        <link rel="stylesheet" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    <head>
+    <body>
+        <header>
+
+	    <div class="logo">
+                <a class="small" href="../">Deepika Anantharaman</a>
+            </div>
+	    <nav>
+                <a class="small" href="../about.html">About</a>
+                <a class="small" href="../contact.html">Contact</a>
+                <a class="small" href="../archive.html">Archive</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>The Alpha Shape</h1>
+            <article>
+<style>
+        body {
+                background-color: #FFFFFF;
+        }
+</style>
+    <section class="header">
+        Posted on August 12, 2015
+        
+    </section>
+
+    <section>
+	<div class="grid">
+
+<section id="table-of-contents" class="toc-content">
+<h3>Table of Contents</h3>
+<ol type="1">
+<li><a href="#what-is-the-alpha-shape-and-why-do-i-need-it?">What is the alpha shape and why do I need it</a></li>
+<li><a href="#the-alpha-complex">The Alpha complex</a>
+<ol type="a">
+<li><a href="#simplex">Simplex</a></li>
+<li><a href="#simplical-complex">Simplical Complex</a></li>
+<li><a href="#simplical-k-complex">Simplical k-complex</a></li>
+<li><a href="#the-delaunay-triangulation">The Delaunay Triangulation</a></li>
+<li><a href="#the-alpha-complex">The alpha complex</a></li>
+</ol></li>
+<li><a href="#properties-of-the-alpha-complex">Properties of the alpha complex</a></li>
+<li><a href="#how-do-i-make-my-own">How do I make my own</a>
+<ol type="a">
+<li><a href="#approach-1">Approach 1</a></li>
+<li><a href="#approach-2">Approach 2</a></li>
+</ol></li>
+<li><a href="#existing-techniques">Existing Techniques</a></li>
+<li><a href="#what-next?">What next?</a>
+<br><a href="#footnotes">Footnotes</a></li>
+</ol>
+</section>
+<div class="post-body">
+<h2 id="what-is-the-alpha-shape-and-why-do-i-need-it">What is the alpha shape and why do I need it?</h2>
+<p>A close cousin of the <a class="footnoteRef" href="https://en.wikipedia.org/wiki/Convex_hull"><em><strong>convex hull</strong></em></a> <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> (my post on which you can find <a href="2015-08-12-2D-Convex-Hull.html"><strong>here</strong></a>), the alpha shape is a conditionally better fitting polygonal figure enveloping a set of datapoints. Depending on the parameter <span class="math inline">\(\alpha\)</span>, the alpha shape of a given set of points could range from being a set of disjoint islands connecting only few points each, a highly <em><strong>concave</strong></em> <a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> polygon, to even the convex hull itself!</p>
+<p>Figures 1, 2 and 3 show three different alpha shapes for the same set of planar points for readers to better understand its nature. <a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
+<p>// Insert figures //</p>
+<p>Some sources differ on how <span class="math inline">\(\alpha\)</span> is used in the construction of the alpha shape, and it will be worth taking a few minutes to understand why since it directly relates to its algorithmic construction. And for this, we will have to be armed with knowledge of the more general alpha complex which we will cover in the next section.</p>
+<p>As to why I began looking into the alpha shape and how to construct it with a homebrewed algorithm, I refer you to my post where I talk about my ongoing research project -<a href="2015-08-12-Safe-Online-Data-Driven-Learning.html"><strong>Safe Online Learning</strong></a>, part of which involves setting up for an <em><strong>autonomous robot agent</strong></em> <a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> a 2D environment with differently shaped obstacles which it will scan using a simulated liDAR. And for the obstacles to be discerned correctly necessitated an algorithm that can compute the boundary of any non-convex shape. The problem is guaranteed to produce the desired obstacle shape to a great degree of accuracy especially since the bottlenecks such as a good estimate of <span class="math inline">\(\alpha\)</span> are easily overcome due to the uniformly gridded 2D environment in our setup.</p>
+<h2 id="the-alpha-complex">The Alpha complex</h2>
+<p>This section will take the reader on a guided mathematical tour of geometric simplical complexes and will comprise of several sub-sections with illustrative examples, wrapping up with the alpha complex and its mathematical properties.</p>
+<h4 id="simplex">Simplex</h4>
+<p>A simplex is the geometrical common noun used to refer to shapes constructed by connecting the least number of vertices in arbitrary dimensions so as to form a <em><strong>polytope</strong></em> <a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>.</p>
+<p>// sidenotes on usage of geometric vs. geometrical //
+// sidenotes on definition of “polytope” //</p>
+<p>To make it more clear, the point is a simplex in the 0-th dimension, a line is a simplex in 1 dimensional space, a triangle the simplex in 2 dimensions, a tetrahedron in 3 D space and so on.</p>
+<h4 id="simplical-complex">Simplical Complex</h4>
+<p>With an idea of the simplex, it becomes easy to understand a simplical complex (or geometric simplical complex) as a set composed of point vertices, line segments that connect these vertices, triangles, tetrahedra and correspondingly higher n-dimensional simplices. A simplical complex, what I will refer to as a complex from now on is a set made up of different n-dimensional simplices.</p>
+<p>// sidenote on the usage of simplices vs. simplexes //</p>
+<h4 id="simplical-k-complex">Simplical k-complex</h4>
+<p>Quite simply defined as a simplical complex where the simplex of the largest dimension is a k-dimensional simplex. For example, a 3-complex can have as constituent elements - points, line segments, triangles and terahedra but no simplices of dimensions 4 and above like the 4-simplex pentachoron or the 5-simplex hexateron!</p>
+<p>The <em><strong>k-simplex is also the convex hull of k+1 number of points</strong></em> <a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>, which is easily verified when we think of the line, triangle and <em><strong>tetrahedron</strong></em> <a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>. // ref: https://www.mrzv.org //</p>
+<h4 id="the-delaunay-triangulation">The Delaunay Triangulation</h4>
+<p>The delaunay triangulation is a very interesting k-simplical <em><strong>tesselation</strong></em> <a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> most commonly seen in 2 dimensions as a triangulation of a collection of planar points such that every triangle formed is circumscribed by an empty circle. They also have the property of maximizing the minimum of each of the triangles’ angles. For euclidean distance used as the metric to compute the delaunay triangulation, the tesselation so formed is unique.</p>
+<p>// sidenotes on exceptions to the uniqueness of delaunay triangulations //</p>
+<h4 id="the-alpha-complex-1">The alpha complex</h4>
+<p>The alpha complex as its name suggests is a simplical complex (in 2-D space) formed by points,the line segments connecting the points, triangles formed by three cyclically connected line segments, conditionally dependent on the intersection of 1/<span class="math inline">\(\alpha\)</span> radius circles around each of the data points.</p>
+<p>The following is a simple set of steps to construct the alpha complex of a few planar datapoints:</p>
+<ol type="1">
+<li>Calculate the value of <span class="math inline">\(1/\alpha\)</span></li>
+<li>Draw circles of radius <span class="math inline">\(1/\alpha\)</span> around each of the data points</li>
+<li>Connect every pair of points whose circles either touch (kissing circles) or overlap (at two points)</li>
+<li>For every triangle so formed by the connecting line segments, check to make sure they are “delaunay” - i.e that they are empty of other data points and if they are not, remove the last drawn connecting line segment</li>
+<li>Continue the process until all possible points have been connected and all triangles formed are Delaunay!</li>
+</ol>
+<p>Figure X. shows the alpha shape constructed for the value of <span class="math inline">\(\alpha=\)</span> along with the underlying circles of radius <span class="math inline">\(1/\alpha\)</span> and how they overlap.</p>
+<p>To wrap it all up, the alpha shape is the alpha complex for a certain <span class="math inline">\(\alpha\)</span> value. And is thus the delaunay triangulation as <span class="math inline">\(1/\alpha \rightarrow \infty\)</span>.</p>
+<h2 id="properties-of-the-alpha-complex">Properties of the alpha complex</h2>
+<p>The alpha complex has the following properties for a set of points P and some real valued <span class="math inline">\(\alpha\)</span>:</p>
+<ol type="1">
+<li>The distance between any two points <span class="math inline">\(p_1\)</span> and <span class="math inline">\(p_2\)</span> in the alpha complex is at most <span class="math inline">\(2/\alpha\)</span></li>
+<li>The circumscribing circles of every set of three points connecting to form a triangle is empty of datapoints in P</li>
+<li>Every three set of points that form a triangle are such that the smallest of their interior angles is always maximized</li>
+<li>Certain values of <span class="math inline">\(\alpha\)</span> could lead to multiple disjointed sets of smaller complexes</li>
+<li>The voronoi tesselation or voronoi diagram is the geometric dual of the delaunay triangulation so formed by the alpha complex when <span class="math inline">\(1/\alpha \rightarrow \infty\)</span></li>
+<li>For a set of uniformly gridded points, each distance <span class="math inline">\(d\)</span> away from its closest neighbors, choosing <span class="math inline">\(1/\alpha\)</span> to be lesser than <span class="math inline">\(d\)</span> will lead to the alpha shape being the discrete point set itself.</li>
+</ol>
+<h2 id="how-do-i-make-my-own">How do I make my own</h2>
+<p>The algorithm for the construction of the alpha shape is more nuanced than that of the convex hull. The uncertaintly in the convexity of the resulting shape and the (in)sufficiency of the value of <span class="math inline">\(\alpha\)</span> make the process make for many more edge cases and as a result, more verbose and less efficient code.</p>
+<p>The following subsections detail my two approaches, their advantages and their shortcomings and will continue to expand as I work on creating an efficient home made solution for any random set of 2 D points.</p>
+<h4 id="approach-1">Approach 1</h4>
+<h4 id="approach-2">Approach 2</h4>
+<h2 id="existing-techniques">Existing Techniques</h2>
+<h2 id="what-next">What next?</h2>
+<section id="footnotes" class="post-footnotes">
+<h4>Footnotes</h4>
+</section>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="https://en.wikipedia.org/wiki/Convex_hull">Convex Hull - Wikipedia</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://mathworld.wolfram.com/ConcavePolygon.html">Concave - The opposite of a convex surface, and in context of a polygon a shape with at least one interior reflexive/obtuse angle</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Inline notes are easier to write, since you don’t have to pick an identifier and move down to type the
+note.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><a href="https://en.wikipedia.org/wiki/Autonomous_robot">Autonomous robot - a robot which operates without human supervision</a><a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><a href="https://mathworld.wolfram.com/Polytope.html">Polytope - An n-dimensional analogue of a polygon</a><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><a href="https://www.mrzv.org/software/dionysus/_downloads/560102bd0b0a77e5b34cfa4d65781ce7/dionysus-slides.pdf">A practical guide to persistent homology</a><a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><a href="https://plus.maths.org/content/maths-minute-simplices-atoms-topology">Tetrahedron - the 3-simplex</a><a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><a href="https://www.mathsisfun.com/definitions/tessellation.html">Tessellation - a tiling pattern made up of repeated interlocking of one or more shapes</a><a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+    </section>
+</article>
+
+        </main>
+
+        <footer>
+            website source code on <a href="my_repository_link">github</a>
+        </footer>
+    </body>
+</html>

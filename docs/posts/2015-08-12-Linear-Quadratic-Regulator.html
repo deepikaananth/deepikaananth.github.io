@@ -1,0 +1,146 @@
+<!doctype html>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<html lang="en">
+
+<style>
+        body {
+                background-color: #FFFFF9;
+        }
+</style>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>My Hakyll Blog - Linear Quadratic Regulator</title>
+        <link rel="stylesheet" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    <head>
+    <body>
+        <header>
+
+	    <div class="logo">
+                <a class="small" href="../">Deepika Anantharaman</a>
+            </div>
+	    <nav>
+                <a class="small" href="../about.html">About</a>
+                <a class="small" href="../contact.html">Contact</a>
+                <a class="small" href="../archive.html">Archive</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>Linear Quadratic Regulator</h1>
+            <article>
+<style>
+        body {
+                background-color: #FFFFFF;
+        }
+</style>
+    <section class="header">
+        Posted on August 12, 2015
+        
+    </section>
+
+    <section>
+	<section id="table-of-contents" class="toc-content">
+<h4><u> Table of Contents</u></h4>
+<ol type="1">
+<li><a href="#linear-systems-and-quadratic-objectives">Linear systems and Quadratic Objectives</a>
+<ol type="a">
+<li><a href="#linear-differential-equations">Linear differential equations</a><br></li>
+<li><a href="#control-inputs">Control inputs</a></li>
+<li><a href="#quadratic-objectives">Quadratic objectives</a></li>
+</ol></li>
+<li><a href="#discrete-and-continuous-time">Discrete and continuous time</a></li>
+<li><a href="#the-riccati-equation">The Riccati equation</a></li>
+<li><a href="#unconstrained-optimal-control">Unconstrained optimal control</a></li>
+<li><a href="#coding-up-a-discrete-lqr">Coding up a discrete LQR</a></li>
+<li><a href="#future-scope">Future scope</a>
+<br><a href="#references">References</a></li>
+</ol>
+</section>
+<div class="post-body">
+<h2 id="linear-systems-and-quadratic-objectives">Linear systems and Quadratic Objectives</h2>
+<h4 id="linear-differential-equations">Linear differential equations</h4>
+<p>Linearity is the property of a function which makes it an additive combination of proportional terms of its arguments (and sometimes also a real value like 43.81 in <a href="#eq1"><strong>eq 1</strong></a>) of the same dimension. For example, the function <span class="math inline">\(f(x, y, z)\)</span> is linear, since it is a sum of linear terms in each of its input variables <span class="math inline">\(x, y\)</span> and <span class="math inline">\(z\)</span></p>
+<p><span id="eq1">
+<span class="math display">\[f(x, y, z) = -5x + 278y + 43.81 \hspace{1cm} .....(1)\]</span>
+</span></p>
+<p>A linear system is used to describe a differential equation where the function being subject to the derivative operator is linear in its input arguments and this results in some interesting properties. Lets consider for example, this linear system described by the first order linear differential equation in <span class="math inline">\(x\)</span>:</p>
+<p><span id="eq2">
+<span class="math display">\[\frac{df(x)}{dt} = -5 \frac{dx}{dt} + 278 x + 43.81 \hspace{1cm} .....(2)\]</span>
+</span></p>
+<p>the beauty of which lies in the fact that this can be solved analytically <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> to give the solution:</p>
+<p><span id="eq3">
+<span class="math display">\[x(t) = \hspace{1cm} .....(3)\]</span>
+</span></p>
+<p>And this is useful because for any real system whose behavior can be modeled using equation <a href="#eq1"><strong>(1)</strong></a>, we can determine <span class="math inline">\(x(t)\)</span> or the <a href="#state"><strong>state<span class="math inline">\(^1\)</span></strong></a> of the system at any
+<span id="state">
+<small class="sidenote">
+<u><strong>State</strong></u><br>
+The state of a physical system is a vector of real/complex valued quantities jointly describing its instantaneous quantitative properties; an example could be a 5-dimensional vector comprising of position <em>(x,y)</em>, speed, acceleration and orientation to describe a car modeled as a point mass.
+</small>
+</span>
+time “t” which is usually what <span class="math inline">\(x\)</span> and <span class="math inline">\(t\)</span> are modeled to be. Just a few things that this powerful tool can help us learn about any real system and its behavior include:</p>
+<ol type="1">
+<li>being able to know its state (if otherwise undisturbed) at any future time</li>
+<li>learning its long term behavior and see if it converges to a <a href="#steady"><strong>steady state<span class="math inline">\(^2\)</span></strong>,</a>
+<span id="steady">
+<small class="sidenote">
+<u><strong>Steady state</strong></u><br>
+A convergence criterion of any dynamic sytem; control theory uses the term to describe the stable behavior of the differential system describing the state of a system which reaches and stagnates as a fixed value beyond certain time period.
+</small>
+</span>
+or an unchanging value of <span class="math inline">\(x\)</span> for any large <span class="math inline">\(t\)</span> as <span class="math inline">\(t \rightarrow \infty\)</span></li>
+<li>being able to classify the system as chaotic if the state values do not converge or repeat in pattern ever!</li>
+<li>making the system <a href="#control"><strong>controllable<span class="math inline">\(^3\)</span></strong></a> by applying suitable control inputs to tweak
+<span id="control">
+<small class="sidenote">
+<u><strong>Controllable</strong></u><br>
+In this context simply means applying to the system some input function <strong>u</strong> that the user controls to influence its behavior. For example:
+<span class="math display">\[\frac{df}{dt} = -5 \dot{x} + 278x + 10u\]</span>
+</small>
+</span>
+its behavior to meet certain goals.</li>
+</ol>
+<h4 id="control-inputs">Control inputs</h4>
+<p>Control inputs are the way we (designers and engineers) interact with systems! They are a means of overriding the natural tendencies of a real world system and getting it to do what we want it to. A classic example is Newton’s law of inertia:</p>
+<center>
+<em>A body continues to remain at a state of rest or a state of continuous motion unless acted upon by an external force</em>.
+</center>
+<p>Which is critical to our understanding of the world and the way we have come to <strong>model</strong> and manipulate real world systems (such as through differential equations and control inputs), a long way from empirical Aristotelian physics</p>
+<center>
+<em>A body always falls at a speed proportional to its weight.</em>
+</center>
+<p>Once we have found the natural laws that a system is governed by such as gravity, magnetic attraction, friction, viscosity, drag etc and we have ourselves a set of differential equations, we can then apply a control input to manipulate it. Let us consider the same linear differential equation as in <a href="#eq2"><strong>(2)</strong></a> and give it an additive control input denoted by <strong>u</strong>.</p>
+<p><span id="eq4">
+<span class="math display">\[\frac{df(x(t))}{dt} = -5 \frac{dx(t)}{dt} + 278 x(t) + 43.81 + u(t) \hspace{1cm} .....(4)\]</span>
+</span></p>
+<h4 id="quadratic-objectives">Quadratic Objectives</h4>
+<h2 id="discrete-and-continuous-time">Discrete and Continuous time</h2>
+<h2 id="the-riccati-equation">The Riccati equation</h2>
+<h2 id="unconstrained-optimal-control">Unconstrained optimal control</h2>
+<h2 id="coding-up-a-discrete-lqr">Coding up a discrete LQR</h2>
+<h2 id="future-scope">Future scope</h2>
+</div>
+<section id="references" class="post-footnotes">
+<h3>References</h3>
+</section>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="https://tutorial.math.lamar.edu/classes/de/Linear.aspx">Analytical solution to the linear ODE</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+    </section>
+</article>
+
+        </main>
+
+        <footer>
+            website source code on <a href="my_repository_link">github</a>
+        </footer>
+    </body>
+</html>

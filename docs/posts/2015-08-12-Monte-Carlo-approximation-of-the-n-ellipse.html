@@ -1,0 +1,258 @@
+<!doctype html>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<html lang="en">
+
+<style>
+        body {
+                background-color: #FFFFF9;
+        }
+</style>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>My Hakyll Blog - Monte Carlo approximation of the n-ellipse</title>
+        <link rel="stylesheet" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    <head>
+    <body>
+        <header>
+
+	    <div class="logo">
+                <a class="small" href="../">Deepika Anantharaman</a>
+            </div>
+	    <nav>
+                <a class="small" href="../about.html">About</a>
+                <a class="small" href="../contact.html">Contact</a>
+                <a class="small" href="../archive.html">Archive</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>Monte Carlo approximation of the n-ellipse</h1>
+            <article>
+<style>
+        body {
+                background-color: #FFFFFF;
+        }
+</style>
+    <section class="header">
+        Posted on August 12, 2015
+        
+    </section>
+
+    <section>
+	<section id="table-of-contents" class="toc-content">
+<h4><u>Table of Contents</u></h4>
+<ol type="1">
+<li><a href="#monte-carlo-simulation">Monte Carlo simulation</a></li>
+<li><a href="#monte-carlo-based-approximation">Monte Carlo based approximation</a></li>
+<li><a href="#the-nellipse">The n-ellispe</a></li>
+<li><a href="#areas-of-closed-curves">Areas of closed curves</a>
+<ol type="a">
+<li><a href="#initializing-variables">Initializing variables</a></li>
+<li><a href="#sampling-points-in-a-uniform-grid-and-approximating-the-area">Sampling points in a uniform grid and approximating the area</a></li>
+<li><a href="#computing-the-n-ellipse-shape">Computing the n-ellipse shape</a></li>
+<li><a href="#convergence-to-a-circle">Convergence to a circle</a></li>
+</ol></li>
+<li><a href="#future-scope">Future scope</a>
+<br><a href="#references">References</a></li>
+</ol>
+</section>
+<div class="post-body">
+<h2 id="monte-carlo-simulation">Monte Carlo simulation</h2>
+<p><a href="#sUlam"><strong>Stanislaw Ulam</strong><span class="math inline">\(^*\)</span></a> invented the Monte Carlo
+<span id="sUlam">
+<small class="sidenote">
+<u><strong>Stanislaw Ulam</strong></u><br>
+Polish born mathematician whose ideas helped physicist Edward Teller develop the idea of the first thermonuclear weapons during the Manhattan Project <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Ulam also invented the concept of Cellular Automata <a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> and the Monte Carlo technique.
+</small>
+technique during the former’s time at Los Alamos <a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. During a period of convalescence, curiosity in trying and failing to combinatorially calculate the probability of drawing a flush set from a deck of cards, he exhasperatedly resorted to repeating the experiment many times and simply counting up the number of times he managed a successful draw <a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>. Following a collaboration with <a href="#vonNeumann"><strong>John von Neumann</strong><span class="math inline">\(^*\)</span></a>, he then published
+</span>
+<span id="vonNeumann">
+<small class="sidenote">
+<u><strong>John von Neumann</strong></u><br>
+Hungarian born polymath known for extraordinary contributions in many, many fields from logic and quantum mechanics to game theory and stochastic computing.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>
+</small>
+</span>
+his work, naming the technique the Monte Carlo method after the famous Monte Carlo casino in Monaco due to the similarities of the technique to the way the roulette wheel works.</p>
+<p>The technique has since then been used in areas such as optimization, numerical approximation of areas and bounds, and probability estimations.</p>
+<h2 id="monte-carlo-based-approximation">Monte Carlo based approximation</h2>
+<p>The idea is best illustrated with an example (which quickly revealed itself upon closer inspection to be worthy of <a href="#2015-08-12-Estimating-Numpys-randn"><strong>its own post</strong></a>).</p>
+<p>For those familiar with the Python library Numpy, there exists the function <code>random.randn()</code> which returns <a href="#prng"><strong>(pseudo) randomly<span class="math inline">\(^*\)</span></strong></a> sampled
+<span id="prng">
+<small class="sidenote">
+<u><strong>Pseudo randomness</strong></u><br>
+The nature of computer generated numbers which appear to be statistically random but will repeat or express a discernible pattern after some large, finite number of elements.
+</small>
+</span>
+data of whatever shape is specified inside its arguments. The <code>randn</code> function is also described as choosing its sample points from a standard normal distribution. We can verify this as being the case by trying to sample some N number of scalars using the function and plotting them on a 1-dimensional histogram as shown below where N is gradually increased from 20, to 100, to 1000 to 200000, getting closer and closer to the expected characteristic gaussian bell curve centered at 0.</p>
+<h2 id="the-n-ellipse">The n-ellipse</h2>
+<span id="tri-ellipse">
+<small class="sidenote">
+<u><strong>Fig.1: A tri ellipse</strong></u><br>
+<center>
+<figure>
+<img src="../../Images/tri-ellipse.png" style="width:80.0%" alt="Ellipses with 3 foci and different distance d values" />
+<figcaption aria-hidden="true">Ellipses with 3 foci and different distance <span class="math inline">\(d\)</span> values</figcaption>
+</figure>
+</center>
+<p></small>
+</span></p>
+<p>In the 2-dimensional sense, an ellipse is a locus of points at constant distance from 2 fixed points. A circle is a special case of the ellipse where all the points are at a constant distance from 1 fixed point. Extending the same generalization to any <span class="math inline">\(n\)</span> points, we can say that by virtue of the circle being a 1-ellipse and the regular (2 focal point) ellipse the 2-ellipse, the n-ellipse can be described mathematically as:</p>
+<p><span class="math display">\[ E_n(x,y) = \Biggl\{ (x,y) | \sum_{i=1}^n \sqrt{ (x-u_i)^2 + (y-v_i)^2 } = d \Biggl\}\]</span></p>
+<p>The equation above is understood as being the sum (the big <span class="math inline">\(\sum\)</span> symbol) of the euclidean distances (the square root and the terms inside) from any point on the n-ellipse boundary <span class="math inline">\((x,y)\)</span> to each individual focus point <span class="math inline">\((u_i, v_i)\)</span> equal some constant <span class="math inline">\(d\)</span>.</p>
+<h2 id="areas-of-closed-curves">Areas of closed curves</h2>
+<p>The area of a (finite) closed region bound by one or more curves can be calculated analytically using <a href="#green"><strong>Green’s theorem</strong><span class="math inline">\(^*\)</span></a> involving a double integral. However, this is possible only if there exists a way to parameterize the equation defining a locus of points on a curve, i.e represent the (multivariate) function in terms of a single variable. And many times this is possible as in this example of an imaginary curve <span class="math inline">\(f(x, y, z)\)</span>, where some co-ordinate transfer could result in:</p>
+<p><span class="math display">\[g(u) = x; \hspace{1cm} h(u) = y; \hspace{1cm} k(u) = z\]</span></p>
+<p>allowing us to rewrite in parametric form for some arbitrarily picked <span class="math inline">\(f\)</span>:</p>
+<p><span class="math display">\[f(x, y, z) = x^2 + y + \frac{13}{z} = g^2(u) + h(u) + \frac{13}{k(u)}\]</span></p>
+<p>This has turned the curve into a parametric form in just a single variable <span class="math inline">\(u\)</span> which can now be integrated with correct bounds to compute the area.</p>
+<p>But, not all curves can be converted into such a parametric form, and so they cannot be integrated in order to analytically compute the area they enclose. And in such cases, numerical alternatives must be considered. For polygons, even non-convex, a <a href="#triangulation"><strong>divide and conquer</strong><span class="math inline">\(^*\)</span></a> approach usually does it.</p>
+<p>So, what about smooth curves like the n-ellipse? Thats’ when I had the idea of using the Monte Carlo simulation to approximate the area of the n-ellipse. The steps I took are explained in order below along with snippets of code.</p>
+<h4 id="initializing-variables">Initializing variables</h4>
+<p>The number of points (the bigger the better as we saw in the toy example), the foci, the constant distance <span class="math inline">\(d\)</span> and empty lists for points inside and outside the n-ellipse to be calculated are defined.</p>
+<div class="sourceCode" id="myCode1"><pre class="sourceCode python"><code class="sourceCode python"><span id="myCode1-1"><a href="#myCode1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, N, foci, distance):</span>
+<span id="myCode1-2"><a href="#myCode1-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.N <span class="op">=</span> N</span>
+<span id="myCode1-3"><a href="#myCode1-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.foci <span class="op">=</span> foci</span>
+<span id="myCode1-4"><a href="#myCode1-4" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.d <span class="op">=</span> <span class="bu">float</span>(distance)</span>
+<span id="myCode1-5"><a href="#myCode1-5" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.dist_matrix <span class="op">=</span> scipy.spatial.distance.pdist(<span class="va">self</span>.foci)</span>
+<span id="myCode1-6"><a href="#myCode1-6" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.inside <span class="op">=</span> []</span>
+<span id="myCode1-7"><a href="#myCode1-7" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.outside <span class="op">=</span> []</span></code></pre></div>
+<h4 id="sampling-points-in-a-uniform-grid-and-approximating-the-area">Sampling points in a uniform grid and approximating the area</h4>
+<p>The most important function performs the task of sampling points from a uniform grid of a fixed density and then computing which points are such that the sum of their distances from the n foci is lesser than or equal to <span class="math inline">\(d\)</span>, appending them to a separate list than the points at distance greater than <span class="math inline">\(d\)</span>. When all the points have so been sorted, we then calculate the ratio of the number of points inside to the total number of points and adjust for the scaling with a precalculated factor <span class="math inline">\(f\)</span>.</p>
+<div class="sourceCode" id="myCode2"><pre class="sourceCode python"><code class="sourceCode python"><span id="myCode2-1"><a href="#myCode2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> param_area(<span class="va">self</span>):</span>
+<span id="myCode2-2"><a href="#myCode2-2" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="myCode2-3"><a href="#myCode2-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># calculate the 'f' factor within bounds of which to sample pts</span></span>
+<span id="myCode2-4"><a href="#myCode2-4" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="bu">abs</span>(np.<span class="bu">max</span>(foci)) <span class="op">+</span> <span class="bu">abs</span>(np.<span class="bu">min</span>(foci))</span>
+<span id="myCode2-5"><a href="#myCode2-5" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> np.<span class="bu">max</span>((f, <span class="va">self</span>.d)) <span class="op">*</span> <span class="fl">2.5</span>       </span>
+<span id="myCode2-6"><a href="#myCode2-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="myCode2-7"><a href="#myCode2-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sample uniformly gridded points    </span></span>
+<span id="myCode2-8"><a href="#myCode2-8" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> np.linspace(<span class="op">-</span>f<span class="op">/</span><span class="dv">2</span>, f<span class="op">/</span><span class="dv">2</span>, <span class="bu">int</span>(np.sqrt(<span class="va">self</span>.N)))</span>
+<span id="myCode2-9"><a href="#myCode2-9" aria-hidden="true" tabindex="-1"></a>    Y <span class="op">=</span> np.linspace(<span class="op">-</span>f<span class="op">/</span><span class="dv">2</span>, f<span class="op">/</span><span class="dv">2</span>, <span class="bu">int</span>(np.sqrt(<span class="va">self</span>.N)))</span>
+<span id="myCode2-10"><a href="#myCode2-10" aria-hidden="true" tabindex="-1"></a>    x, y <span class="op">=</span> np.meshgrid(X, Y)</span>
+<span id="myCode2-11"><a href="#myCode2-11" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> x.reshape(<span class="op">-</span><span class="dv">1</span>)<span class="op">;</span>                    </span>
+<span id="myCode2-12"><a href="#myCode2-12" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> y.reshape(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="myCode2-13"><a href="#myCode2-13" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="myCode2-14"><a href="#myCode2-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute points sum of distances to the foci!</span></span>
+<span id="myCode2-15"><a href="#myCode2-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="va">self</span>.N):</span>
+<span id="myCode2-16"><a href="#myCode2-16" aria-hidden="true" tabindex="-1"></a>            pt <span class="op">=</span> np.array([x[i], y[i]])</span>
+<span id="myCode2-17"><a href="#myCode2-17" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> <span class="dv">0</span>                                </span>
+<span id="myCode2-18"><a href="#myCode2-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="va">self</span>.foci.shape[<span class="dv">0</span>]):</span>
+<span id="myCode2-19"><a href="#myCode2-19" aria-hidden="true" tabindex="-1"></a>                dist <span class="op">+=</span> math.dist(pt, <span class="va">self</span>.foci[j,:])</span>
+<span id="myCode2-20"><a href="#myCode2-20" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="myCode2-21"><a href="#myCode2-21" aria-hidden="true" tabindex="-1"></a>            <span class="co"># separate the points as being inside/outside the ellipse </span></span>
+<span id="myCode2-22"><a href="#myCode2-22" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> dist <span class="op">&lt;=</span> <span class="va">self</span>.d:</span>
+<span id="myCode2-23"><a href="#myCode2-23" aria-hidden="true" tabindex="-1"></a>                <span class="va">self</span>.inside.append(pt)</span>
+<span id="myCode2-24"><a href="#myCode2-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="myCode2-25"><a href="#myCode2-25" aria-hidden="true" tabindex="-1"></a>                <span class="va">self</span>.outside.append(pt)</span>
+<span id="myCode2-26"><a href="#myCode2-26" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="myCode2-27"><a href="#myCode2-27" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.inside <span class="op">=</span> np.asarray(<span class="va">self</span>.inside)</span>
+<span id="myCode2-28"><a href="#myCode2-28" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.outside <span class="op">=</span> np.asarray(<span class="va">self</span>.outside)</span>
+<span id="myCode2-29"><a href="#myCode2-29" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="myCode2-30"><a href="#myCode2-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Computing the approximation of the area of the n-ellipse:</span></span>
+<span id="myCode2-31"><a href="#myCode2-31" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.area <span class="op">=</span> (f<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> <span class="bu">len</span>(<span class="va">self</span>.inside) <span class="op">/</span> <span class="va">self</span>.N </span>
+<span id="myCode2-32"><a href="#myCode2-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.area</span></code></pre></div>
+<p>The most important points in the snippet just above are summarized as such:</p>
+<ol type="1">
+<li><p>The <span class="math inline">\(f\)</span> factor is an attempt to estimate the range of the x and y for the sample points so that there will be points both inside and outside the n-ellipse that the given set of foci and <span class="math inline">\(d\)</span> are going to produce. Sometimes it is difficult to gauge it since we might fall short of the bounds of the n-ellipse itself, or on the other extreme - end up with way too many points outside the ellipse, making the approximation chunky and inaccurate.</p></li>
+<li><p>For readers familiar with the Python <code>numpy.meshgrid</code> function, the inputs are interleaved to produce every possible combinatorial pair of values. When these outputs are reshaped into 1-dimensional arrays (using <code>.reshape(-1)</code>), we want them to be of size <code>N</code>, since that was the number of points we wanted to sample! And therefore, initially producing <code>meshgrid</code> inputs of size <span class="math inline">\(\sqrt{N}\)</span> each will give sample point <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> coordinates of desired length <span class="math inline">\(N\)</span>.</p></li>
+<li><p>The area obviously is not just the ratio of the number of points inside the ellipse to <code>N</code>. It needs to be scaled by <span class="math inline">\(f^2\)</span>, once for the x axis and once for the y axis, since both axes have points extending from <span class="math inline">\(-f/2\)</span> to <span class="math inline">\(f/2\)</span>.</p></li>
+</ol>
+<h4 id="computing-the-n-ellipse-shape">Computing the n-ellipse shape</h4>
+<p>Once we have the set of points that lie inside or on the boundary of the ellipse, running my home-made gift-wrapping convex hull algorithm produced convincing results for a dense enough sample grid. The code and explanation for the convex hull can be found in my <a href="#2015-08-12-2D-Convex-Hull-algorithm"><strong>post</strong></a> on the same.</p>
+<p>Outputs from a few interesting runs are shown in the images below.</p>
+<p>Given the <strong>4 foci</strong> at the points <span class="math inline">\((1,8), (4, -3), (-13, -6)\)</span> and <span class="math inline">\((20,-2)\)</span> with sum of distances chosen to be <span class="math inline">\(d=57\)</span>, the following was obtained as shown in <a href="#4ellipse"><strong>Fig.2</strong></a> and <a href="#4ellipseHull"><strong>Fig.3</strong></a>.</p>
+<span id="4ellipseHull">
+<small class="sidenote">
+<u><strong>Fig 3.</strong></u> Piece-wise linear 4 ellipse boundary approximated by the convex hull algorithm<br>
+<img src="../../Images/4_ellipse_57_hull.png" style="width:100.0%" />
+</small>
+</span>
+<span id="4ellipse">
+<center>
+<figure>
+<img src="../../Images/4_ellipse_57.png" style="width:70.0%" alt="Fig 2. 4 ellipse with d = 57" />
+<figcaption aria-hidden="true"><strong>Fig 2.</strong> 4 ellipse with <span class="math inline">\(d\)</span> = 57</figcaption>
+</figure>
+</center>
+<p></span></p>
+<p>A set of 5 foci with a much bigger <span class="math inline">\(d\)</span> value 300 produced the following results as seen in Figures <a href="#5ellipse"><strong>4</strong></a> and <a href="#5ellipseHull"><strong>5</strong></a>. It was calculated to have an <strong><em>area</em></strong> of 123715.15455322266 sq. units.</p>
+<span id="#5ellipseHull">
+<small class="sidenote">
+<u><strong>Fig 5.</strong></u> Piece-wise linear 5 ellipse boundary approximated by the convex hull algorithm<br>
+<img src="../../Images/5_ellipse_Hull.png" style="width:80.0%" />
+</small>
+</span>
+<span id="5ellipse">
+<center>
+<figure>
+<img src="../../Images/5_ellipse.png" style="width:70.0%" alt="Fig 4. 5 ellipse with d = 300" />
+<figcaption aria-hidden="true"><strong>Fig 4.</strong> 5 ellipse with <span class="math inline">\(d\)</span> = 300</figcaption>
+</figure>
+</center>
+<p></span></p>
+<h4 id="convergence-to-a-circle">Convergence to a circle</h4>
+<p>Three pairs of images of an 8 focus ellipse with <span class="math inline">\(d\)</span> values 334, 650 and 3400 are shown for comparison in the Figures <a href="#8small"><strong>6</strong></a>, <a href="#8med"><strong>7</strong></a> and <a href="#8big"><strong>8</strong></a> along with their approximated areas. And the most interesting takeaway is that the bigger the <span class="math inline">\(d\)</span> value gets, the closer to a circle the generated n-ellipse looks, perhaps implying an eventual convergence, which is a reasonable conclusion! This is because the bigger the <span class="math inline">\(d\)</span> value, the more infinitesimally closer the foci come to becoming one central point and the infinitely far away from the boundary of that n-ellipse which will have become a circle.</p>
+<span id="8small">
+<center>
+<figure>
+<img src="../../Images/8ellipseSMALL.png" style="width:120.0%" alt="Fig 6. 8 ellipse with d = 334 with area = 643.6118836249999 sq. units" />
+<figcaption aria-hidden="true"><strong>Fig 6.</strong> 8 ellipse with <span class="math inline">\(d\)</span> = 334 with <strong><em>area</em></strong> = 643.6118836249999 sq. units</figcaption>
+</figure>
+</center>
+</span>
+<span id="8med">
+<center>
+<figure>
+<img src="../../Images/8ellipseMED.png" style="width:120.0%" alt="Fig 7. 8 ellipse with d = 650 with area = 16822.928408203123 sq. units" />
+<figcaption aria-hidden="true"><strong>Fig 7.</strong> 8 ellipse with <span class="math inline">\(d\)</span> = 650 with <strong><em>area</em></strong> = 16822.928408203123 sq. units</figcaption>
+</figure>
+</center>
+</span>
+<span id="8big">
+<center>
+<figure>
+<img src="../../Images/8ellipseBIG.png" style="width:115.0%" alt="Fig 8. 8 ellipse with d = 3400 with area = 562697.6306249999 sq. units" />
+<figcaption aria-hidden="true"><strong>Fig 8.</strong> 8 ellipse with <span class="math inline">\(d\)</span> = 3400 with <strong><em>area</em></strong> = 562697.6306249999 sq. units</figcaption>
+</figure>
+</center>
+<p></span></p>
+<h2 id="future-scope">Future scope</h2>
+<p>I considered the results I got to be be quite successful and the n-ellipse allowed me to explore perhaps one of the most interesting applications for area estimation of a closed curve using the Monte Carlo technique that I had come across. However, this isn’t the end of it; a few ideas I have for follow up work on the same are listed below (that someday I hope to make more posts about!):</p>
+<ol type="1">
+<li><p>Replacing the convex hull algorithm with a <a href="#bezier"><strong>spline based</strong></a> boundary estimation
+<span id="bezier">
+<small class="sidenote">
+<u><strong>Bezier curves</strong></u><br>
+A continuous curve constructed passing through a given number of points with boundary conditions and smoothness constraints.
+</small>
+</span></p></li>
+<li><p>Systematically better the calculation of the scaling factor <span class="math inline">\(f\)</span>.</p></li>
+<li><p>Update the images on this post to have a better color scheme.</p></li>
+</ol>
+</div>
+<section id="references" class="post-footnotes">
+<h4>References</h4>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="#https://www.osti.gov/opennet/manhattan-project-history/Events/events.htm">The Manhattan Project</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="#https://mathworld.wolfram.com/CellularAutomaton.html">Cellular Automata</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><a href="#https://web.williams.edu/Mathematics/sjmiller/public_html/105Sp10/handouts/MetropolisUlam_TheMonteCarloMethod.pdf">METROPOLIS N, ULAM S. The Monte Carlo method. J Am Stat Assoc. 1949 Sep;44(247):335-41. doi: 10.1080/01621459.1949.10483310. PMID: 18139350.</a><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><a href="#http://www-star.st-and.ac.uk/~kw25/teaching/mcrt/MC_history_3.pdf">Stan Ulam, John von Neumann and the Monte Carlo Method</a><a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><a href="#https://www.ias.edu/von-neumann">John von Neumann</a><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+    </section>
+</article>
+
+        </main>
+
+        <footer>
+            website source code on <a href="my_repository_link">github</a>
+        </footer>
+    </body>
+</html>
