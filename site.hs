@@ -123,35 +123,3 @@ pandocMathCompiler =
         }
     in pandocCompilerWith defaultHakyllReaderOptions writerOptions
 
-
-
-
-
----------------------------------------------------------------------------------
-
--- This section in between the ----- dashed lines ------ is for Sidenotes!!!!!! --
-
-{-
-myPandocCompiler :: Compiler (Item String)
-myPandocCompiler =
-  pandocCompilerWithTransformM
-    defaultHakyllReaderOptions
-  --myWriter
-  --(
--- --. pygments
--- --. usingSidenotes          -- sidenotes
-  --)
----}
-----------------------------------------------------------------------------------
- 
--- This section is for the automated table of contents geenration using pandoc	
-{-
-withToc :: WriterOptions
-withToc = defaultHakyllWriterOptions
-        { writerTableOfContents = True
-        , writerTOCDepth = 2
---      , writerTemplate = Just "Table of Contents\n$toc$\n$body$"
---      }      
----}
-
- 

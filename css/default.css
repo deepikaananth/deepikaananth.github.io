@@ -162,14 +162,28 @@ blockquote .sidenote {
 
 
 
-/*Post page content*/
+/*POST PAGE CONTENT LAYOUT AND SIZE*/
 
 .grid{
   position:relative;
   width:100%;
 }
 
-@media screen and (min-width: 1200px) {
+
+/* toc-content for 1920x1080 p resolutions and above */
+.toc-content {
+  /*position:fixed;*/
+  top:8.4%;
+  left:2.75%;
+  bottom:20;
+  width:100%;
+  line-height: 1.75;
+  font-size: 18px;
+  background: rgba(255, 255, 255, 0.0)
+}
+
+
+@media screen and (min-width: 1680px) {
   .toc-content {
     position:fixed;
     top:8.4%;
@@ -182,27 +196,16 @@ blockquote .sidenote {
   }
  }
 
-@media screen and (max-width: 1200px) {
-  .toc-content {
-    position:fixed;
-    top:8.4%;
-    left:2.75%;
-    bottom:20;
-    width:22.5%;
-    line-height: 1.75;
-    font-size: 1.5vw;
-    background: rgba(255, 255, 255, 0.0)
-  }
- }
 
 .post-body{
-  /*position:absolute;*/
+  /*position:absolute;        was commented out previously */
   top:0;
   left:0%;
   width:100%;
   background:#FFFFFF;
   align-items: stretch;
-  }
+}
+
 
 .post-footnotes{
   display: flex;
