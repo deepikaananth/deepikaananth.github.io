@@ -55,21 +55,22 @@
 <li><a href="#grahams-scan">Graham’s Scan</a></li>
 </ol></li>
 <li><a href="#how-does-this-help-with-the-alpha-shape">How does this help with the Alpha shape?</a></li>
-<li><a href="#improvements">Improvements</a>
+<li><a href="#future-scope">Future scope</a>
 <br><a href="#references">References</a></li>
 </ol>
 </section>
 <div class="post-body">
 <h2 id="construction-and-motivation">Construction and Motivation</h2>
 <p>One easy way to visualize the convex hull of a set of planar datapoints is - as the shape formed by the datapoints by drawing lines that connect every single pair of them, and then removing all the inner lines such that only the outermost boundary remains.</p>
-<p>The convex hull is also the <a href="#polygon-definition"><strong>polygon</strong><span class="math inline">\(^1\)</span></a> formed by a tautly wound spool of thread
+<p>The convex hull is also the <a href="#polygon-definition"><strong>polygon</strong><span class="math inline">\(^1\)</span></a>
 <span id="polygon-definition">
 <small class="sidenote">
 <u><strong>Polygon</strong></u><br>
-A polygon is a closed, convex shape in 2 dimensions.
+A polygon is a closed, convex shape in 2 dimensions.<br><br>
+<img src="../../Images/polygons.png" style="width:100.0%" alt="Fig 1. Some examples of polygons" />
 </small>
 </span>
-wrapped around a collection of datapoints with thumbtacks stuck over them on a piece of cardboard. This way of visualizing makes the following assumptions most readers of this post are very likely to have unconciously already made:</p>
+formed by a tautly wound spool of thread wrapped around a collection of datapoints with thumbtacks stuck over them on a piece of cardboard. This way of visualizing makes the following assumptions most readers of this post are very likely to have unconciously already made:</p>
 <ol type="1">
 <li>That there is an infinite amount of thread available, and as a result of which…</li>
 <li>The distance between any two points the thread connects to form an edge, could potentially be infinite.</li>
@@ -89,12 +90,13 @@ example the highest datapoint among all the thumbtacks, and wrapping the thread 
 The alpha shape is a generalization of the convex hull when the amount of unspooled thread available to us at every new vertex thumbtack is a certain, possibly small and finite function of a quantity <strong><span class="math inline">\(\alpha\)</span></strong>. This results in a possibly concave envelope around a set of points, and the convex hull itself when the function of <span class="math inline">\(\alpha\)</span> tends to <span class="math inline">\(\infty\)</span>.
 </small>
 </span>
-which you can find <a href="2015-08-12-Alpha-Shape.html"><strong>here</strong></a>), which in turn was a necessary part of my ongoing research project on safe online learning of control barrier functions (my post on which you can find <a href="2015-08-12-Safe-Online-Data-Driven-Learning.html"><strong>here</strong></a>.</p>
+which you can find <a href="2015-08-12-Alpha-Shape.html"><strong>here</strong></a>), which in turn was a necessary part of my ongoing research project on safe online learning of control barrier functions (my post on which you can find <a href="2015-08-12-Safe-Online-Data-Driven-Learning.html"><strong>here</strong></a>.</p>
 <p>Tldr; I used the exercise of writing my own convex hull algorithm as a warm up before tackling the alpha shape problem to perform a boundary detection on a 2D <a href="#point-cloud"><strong>point cloud<span class="math inline">\(^4\)</span></strong></a>.
 <span id="point-cloud">
 <small class="sidenote">
 <u><strong>Point Cloud</strong></u><br>
-A collection of data points in three dimensions commonly obtained from LiDAR scans.
+A collection of data points in three dimensions commonly obtained from LiDAR scans.<br><br>
+<img src="../../Images/point_cloud.png" style="width:100.0%" alt="Fig. 2 a 3D point cloud" />
 </small>
 </span></p>
 <h2 id="the-home-made-gift-wrapping-algorithm">The home made Gift-Wrapping algorithm</h2>
@@ -120,71 +122,71 @@ A collection of data points in three dimensions commonly obtained from LiDAR sca
 <span id="mycode1-19"><a href="#mycode1-19"></a> R <span class="op">=</span> np.array([[<span class="dv">1</span>, <span class="dv">0</span>], </span>
 <span id="mycode1-20"><a href="#mycode1-20"></a>               [<span class="dv">0</span>, <span class="dv">1</span>]])</span></code></pre></div>
 <p>For my first attempt, with no prior research into the different algorithms designed for efficient convex hull computation, I came up with the algorithm presented in pseudo-code below, which happened to be a variant of the gift-wrapping algorithm:</p>
-<div class="sourceCode" id="mycode1" data-startFrom="1"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="mycode1-1"><a href="#mycode1-1"></a> <span class="co"># take N number of points of form (x,y) as input</span></span>
-<span id="mycode1-2"><a href="#mycode1-2"></a> <span class="co"># find the highest point</span></span>
-<span id="mycode1-3"><a href="#mycode1-3"></a> <span class="co"># rotate all points by a small angle counterclockwise</span></span>
-<span id="mycode1-4"><a href="#mycode1-4"></a> <span class="co"># is the new highest point still == same highest point from step 2. ?</span></span>
-<span id="mycode1-5"><a href="#mycode1-5"></a> <span class="co"># repeat steps 2. to 4. until a new highest point is found</span></span>
-<span id="mycode1-6"><a href="#mycode1-6"></a> <span class="co"># inverse rotate this highest point which lies on the hull and store it</span></span>
-<span id="mycode1-7"><a href="#mycode1-7"></a> <span class="co"># repeat steps 2. to 6. until the next highest point == first highest point.</span></span></code></pre></div>
+<div class="sourceCode" id="mycode2" data-startFrom="1"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python"><span id="mycode2-1"><a href="#mycode2-1"></a> <span class="co"># take N number of points of form (x,y) as input</span></span>
+<span id="mycode2-2"><a href="#mycode2-2"></a> <span class="co"># find the highest point</span></span>
+<span id="mycode2-3"><a href="#mycode2-3"></a> <span class="co"># rotate all points by a small angle counterclockwise</span></span>
+<span id="mycode2-4"><a href="#mycode2-4"></a> <span class="co"># is the new highest point still == same highest point from step 2. ?</span></span>
+<span id="mycode2-5"><a href="#mycode2-5"></a> <span class="co"># repeat steps 2. to 4. until a new highest point is found</span></span>
+<span id="mycode2-6"><a href="#mycode2-6"></a> <span class="co"># inverse rotate this highest point which lies on the hull and store it</span></span>
+<span id="mycode2-7"><a href="#mycode2-7"></a> <span class="co"># repeat steps 2. to 6. until the next highest point == first highest point.</span></span></code></pre></div>
 <p>In words, what this algorithm <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> was going to do was slowly rotate the whole dataset of points by a small angle at a time until a new highest point was obtained and to repeat the process until we came back to the very first point. Sort of like wrapping a gift by rotating the gift box and draping the required length of wrap over the next side to cover; the whole process viewed cross-sectionally, of course since we are considering a 2D algorithm.</p>
 <p>Here’s the function that does it:</p>
-<div class="sourceCode" id="mycode2" data-startFrom="0"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python" style="counter-reset: source-line -1;"><span id="mycode2-0"><a href="#mycode2-0"></a></span>
-<span id="mycode2-1"><a href="#mycode2-1"></a><span class="cf">while</span> cumulative_theta <span class="op">&lt;</span> <span class="dv">2</span><span class="op">*</span>np.pi:</span>
-<span id="mycode2-2"><a href="#mycode2-2"></a>    count <span class="op">=</span> <span class="dv">0</span></span>
-<span id="mycode2-3"><a href="#mycode2-3"></a>    val <span class="op">=</span> <span class="va">False</span></span>
-<span id="mycode2-4"><a href="#mycode2-4"></a>            </span>
-<span id="mycode2-5"><a href="#mycode2-5"></a>    <span class="cf">while</span> val <span class="op">==</span> <span class="va">False</span>:</span>
-<span id="mycode2-6"><a href="#mycode2-6"></a>                </span>
-<span id="mycode2-7"><a href="#mycode2-7"></a>        <span class="co"># 1. Rotate points by a fixed amount</span></span>
-<span id="mycode2-8"><a href="#mycode2-8"></a>        rotated_pts <span class="op">=</span> <span class="va">self</span>.data <span class="op">@</span> R</span>
-<span id="mycode2-9"><a href="#mycode2-9"></a>                </span>
-<span id="mycode2-10"><a href="#mycode2-10"></a>        <span class="co"># 2. New max Y value</span></span>
-<span id="mycode2-11"><a href="#mycode2-11"></a>        maxY <span class="op">=</span> np.<span class="bu">max</span>(rotated_pts[:,<span class="dv">1</span>])                </span>
-<span id="mycode2-12"><a href="#mycode2-12"></a>                </span>
-<span id="mycode2-13"><a href="#mycode2-13"></a>        <span class="co"># 3. Calculate new highest point using this highest Y coordinate value</span></span>
-<span id="mycode2-14"><a href="#mycode2-14"></a>        next_highest <span class="op">=</span> rotated_pts[<span class="bu">list</span>(rotated_pts[:,<span class="dv">1</span>]).index(maxY), :]</span>
-<span id="mycode2-15"><a href="#mycode2-15"></a>                </span>
-<span id="mycode2-16"><a href="#mycode2-16"></a>        <span class="co"># 4. Inverse rotate the highest point to check if it is still equivalent </span></span>
-<span id="mycode2-17"><a href="#mycode2-17"></a>        <span class="co"># ... to the unrotated highest pt</span></span>
-<span id="mycode2-18"><a href="#mycode2-18"></a>        R_inv <span class="op">=</span> np.array([[np.cos(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta), </span>
-<span id="mycode2-19"><a href="#mycode2-19"></a>				<span class="op">-</span>np.sin(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta)],</span>
-<span id="mycode2-20"><a href="#mycode2-20"></a>                          [np.sin(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta),  </span>
-<span id="mycode2-21"><a href="#mycode2-21"></a>				np.cos(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta)]])</span>
-<span id="mycode2-22"><a href="#mycode2-22"></a>        next_highest <span class="op">=</span> next_highest <span class="op">@</span> R_inv</span>
-<span id="mycode2-23"><a href="#mycode2-23"></a>                </span>
-<span id="mycode2-24"><a href="#mycode2-24"></a>        <span class="co"># 5. Increase the argument of the R matrix by one more self.del </span></span>
-<span id="mycode2-25"><a href="#mycode2-25"></a>        <span class="co"># ... increment and try again</span></span>
-<span id="mycode2-26"><a href="#mycode2-26"></a>        count <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="mycode2-27"><a href="#mycode2-27"></a>        R <span class="op">=</span> np.array([[ np.cos(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta), </span>
-<span id="mycode2-28"><a href="#mycode2-28"></a>				np.sin(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta)],</span>
-<span id="mycode2-29"><a href="#mycode2-29"></a>                      [<span class="op">-</span>np.sin(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta), </span>
-<span id="mycode2-30"><a href="#mycode2-30"></a>				np.cos(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta)]])</span>
-<span id="mycode2-31"><a href="#mycode2-31"></a>                </span>
-<span id="mycode2-32"><a href="#mycode2-32"></a>        <span class="co"># 6. Comparing next_highest and the highest_pt</span></span>
-<span id="mycode2-33"><a href="#mycode2-33"></a>        n_h <span class="op">=</span> np.array([<span class="bu">round</span>(next_highest[<span class="dv">0</span>], <span class="dv">5</span>), <span class="bu">round</span>(next_highest[<span class="dv">1</span>], <span class="dv">5</span>)])</span>
-<span id="mycode2-34"><a href="#mycode2-34"></a>        h_p <span class="op">=</span> np.array([<span class="bu">round</span>(highest_pt[<span class="dv">0</span>], <span class="dv">5</span>), <span class="bu">round</span>(highest_pt[<span class="dv">1</span>], <span class="dv">5</span>)])</span>
-<span id="mycode2-35"><a href="#mycode2-35"></a>        diff <span class="op">=</span> n_h <span class="op">-</span> h_p</span>
-<span id="mycode2-36"><a href="#mycode2-36"></a>        val <span class="op">=</span> diff.<span class="bu">any</span>()</span>
-<span id="mycode2-37"><a href="#mycode2-37"></a>                </span>
-<span id="mycode2-38"><a href="#mycode2-38"></a>    <span class="co"># Having exited the while loop, we update the cumulative angle of rotation</span></span>
-<span id="mycode2-39"><a href="#mycode2-39"></a>    cumulative_theta <span class="op">+=</span> count<span class="op">*</span><span class="va">self</span>.delta</span>
-<span id="mycode2-40"><a href="#mycode2-40"></a>            </span>
-<span id="mycode2-41"><a href="#mycode2-41"></a>    <span class="co"># 8. Append the next pt to the list of hull_pts</span></span>
-<span id="mycode2-42"><a href="#mycode2-42"></a>    highest_pt <span class="op">=</span> next_highest</span>
-<span id="mycode2-43"><a href="#mycode2-43"></a>    <span class="cf">if</span> ((<span class="bu">abs</span>(highest_pt[<span class="dv">0</span>]<span class="op">-</span><span class="va">self</span>.hull_pts[<span class="dv">0</span>][<span class="dv">0</span>])<span class="op">&lt;</span><span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="dv">8</span>)) <span class="kw">and</span> </span>
-<span id="mycode2-44"><a href="#mycode2-44"></a>             (<span class="bu">abs</span>(highest_pt[<span class="dv">1</span>]<span class="op">-</span><span class="va">self</span>.hull_pts[<span class="dv">0</span>][<span class="dv">1</span>])<span class="op">&lt;</span><span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="dv">8</span>))):</span>
-<span id="mycode2-45"><a href="#mycode2-45"></a>        <span class="cf">break</span></span>
-<span id="mycode2-46"><a href="#mycode2-46"></a>    <span class="cf">else</span>:</span>
-<span id="mycode2-47"><a href="#mycode2-47"></a>        <span class="va">self</span>.hull_pts.append(highest_pt)</span>
-<span id="mycode2-48"><a href="#mycode2-48"></a></span>
-<span id="mycode2-49"><a href="#mycode2-49"></a>        <span class="co"># 9. Updating the not_hull_mask!   {if the difference is really really small}</span></span>
-<span id="mycode2-50"><a href="#mycode2-50"></a>        mask1 <span class="op">=</span> (<span class="bu">abs</span>(<span class="va">self</span>.data[:,<span class="dv">0</span>]<span class="op">-</span>next_highest[<span class="dv">0</span>]) <span class="op">&gt;</span> <span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="dv">10</span>))</span>
-<span id="mycode2-51"><a href="#mycode2-51"></a>        mask2 <span class="op">=</span> (<span class="bu">abs</span>(<span class="va">self</span>.data[:,<span class="dv">1</span>]<span class="op">-</span>next_highest[<span class="dv">1</span>]) <span class="op">&gt;</span> <span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="dv">10</span>))</span>
-<span id="mycode2-52"><a href="#mycode2-52"></a>        not_hull_mask <span class="op">=</span> not_hull_mask <span class="op">*</span> (mask1 <span class="op">+</span> mask2)</span>
-<span id="mycode2-53"><a href="#mycode2-53"></a>        </span>
-<span id="mycode2-54"><a href="#mycode2-54"></a>    <span class="va">self</span>.N <span class="op">=</span> <span class="bu">len</span>(<span class="va">self</span>.data)</span>
-<span id="mycode2-55"><a href="#mycode2-55"></a>    <span class="va">self</span>.not_hull <span class="op">=</span> [<span class="va">self</span>.data[i] <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="va">self</span>.N) <span class="cf">if</span> not_hull_mask[i] <span class="op">==</span> <span class="va">True</span>]</span></code></pre></div>
+<div class="sourceCode" id="mycode3" data-startFrom="0"><pre class="sourceCode numberSource python numberLines"><code class="sourceCode python" style="counter-reset: source-line -1;"><span id="mycode3-0"><a href="#mycode3-0"></a></span>
+<span id="mycode3-1"><a href="#mycode3-1"></a><span class="cf">while</span> cumulative_theta <span class="op">&lt;</span> <span class="dv">2</span><span class="op">*</span>np.pi:</span>
+<span id="mycode3-2"><a href="#mycode3-2"></a>    count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="mycode3-3"><a href="#mycode3-3"></a>    val <span class="op">=</span> <span class="va">False</span></span>
+<span id="mycode3-4"><a href="#mycode3-4"></a>            </span>
+<span id="mycode3-5"><a href="#mycode3-5"></a>    <span class="cf">while</span> val <span class="op">==</span> <span class="va">False</span>:</span>
+<span id="mycode3-6"><a href="#mycode3-6"></a>                </span>
+<span id="mycode3-7"><a href="#mycode3-7"></a>        <span class="co"># 1. Rotate points by a fixed amount</span></span>
+<span id="mycode3-8"><a href="#mycode3-8"></a>        rotated_pts <span class="op">=</span> <span class="va">self</span>.data <span class="op">@</span> R</span>
+<span id="mycode3-9"><a href="#mycode3-9"></a>                </span>
+<span id="mycode3-10"><a href="#mycode3-10"></a>        <span class="co"># 2. New max Y value</span></span>
+<span id="mycode3-11"><a href="#mycode3-11"></a>        maxY <span class="op">=</span> np.<span class="bu">max</span>(rotated_pts[:,<span class="dv">1</span>])                </span>
+<span id="mycode3-12"><a href="#mycode3-12"></a>                </span>
+<span id="mycode3-13"><a href="#mycode3-13"></a>        <span class="co"># 3. Calculate new highest point using this highest Y coordinate value</span></span>
+<span id="mycode3-14"><a href="#mycode3-14"></a>        next_highest <span class="op">=</span> rotated_pts[<span class="bu">list</span>(rotated_pts[:,<span class="dv">1</span>]).index(maxY), :]</span>
+<span id="mycode3-15"><a href="#mycode3-15"></a>                </span>
+<span id="mycode3-16"><a href="#mycode3-16"></a>        <span class="co"># 4. Inverse rotate the highest point to check if it is still equivalent </span></span>
+<span id="mycode3-17"><a href="#mycode3-17"></a>        <span class="co"># ... to the unrotated highest pt</span></span>
+<span id="mycode3-18"><a href="#mycode3-18"></a>        R_inv <span class="op">=</span> np.array([[np.cos(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta), </span>
+<span id="mycode3-19"><a href="#mycode3-19"></a>				<span class="op">-</span>np.sin(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta)],</span>
+<span id="mycode3-20"><a href="#mycode3-20"></a>                          [np.sin(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta),  </span>
+<span id="mycode3-21"><a href="#mycode3-21"></a>				np.cos(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta)]])</span>
+<span id="mycode3-22"><a href="#mycode3-22"></a>        next_highest <span class="op">=</span> next_highest <span class="op">@</span> R_inv</span>
+<span id="mycode3-23"><a href="#mycode3-23"></a>                </span>
+<span id="mycode3-24"><a href="#mycode3-24"></a>        <span class="co"># 5. Increase the argument of the R matrix by one more self.del </span></span>
+<span id="mycode3-25"><a href="#mycode3-25"></a>        <span class="co"># ... increment and try again</span></span>
+<span id="mycode3-26"><a href="#mycode3-26"></a>        count <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="mycode3-27"><a href="#mycode3-27"></a>        R <span class="op">=</span> np.array([[ np.cos(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta), </span>
+<span id="mycode3-28"><a href="#mycode3-28"></a>				np.sin(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta)],</span>
+<span id="mycode3-29"><a href="#mycode3-29"></a>                      [<span class="op">-</span>np.sin(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta), </span>
+<span id="mycode3-30"><a href="#mycode3-30"></a>				np.cos(cum_theta<span class="op">+</span>count<span class="op">*</span><span class="va">self</span>.delta)]])</span>
+<span id="mycode3-31"><a href="#mycode3-31"></a>                </span>
+<span id="mycode3-32"><a href="#mycode3-32"></a>        <span class="co"># 6. Comparing next_highest and the highest_pt</span></span>
+<span id="mycode3-33"><a href="#mycode3-33"></a>        n_h <span class="op">=</span> np.array([<span class="bu">round</span>(next_highest[<span class="dv">0</span>], <span class="dv">5</span>), <span class="bu">round</span>(next_highest[<span class="dv">1</span>], <span class="dv">5</span>)])</span>
+<span id="mycode3-34"><a href="#mycode3-34"></a>        h_p <span class="op">=</span> np.array([<span class="bu">round</span>(highest_pt[<span class="dv">0</span>], <span class="dv">5</span>), <span class="bu">round</span>(highest_pt[<span class="dv">1</span>], <span class="dv">5</span>)])</span>
+<span id="mycode3-35"><a href="#mycode3-35"></a>        diff <span class="op">=</span> n_h <span class="op">-</span> h_p</span>
+<span id="mycode3-36"><a href="#mycode3-36"></a>        val <span class="op">=</span> diff.<span class="bu">any</span>()</span>
+<span id="mycode3-37"><a href="#mycode3-37"></a>                </span>
+<span id="mycode3-38"><a href="#mycode3-38"></a>    <span class="co"># Having exited the while loop, we update the cumulative angle of rotation</span></span>
+<span id="mycode3-39"><a href="#mycode3-39"></a>    cumulative_theta <span class="op">+=</span> count<span class="op">*</span><span class="va">self</span>.delta</span>
+<span id="mycode3-40"><a href="#mycode3-40"></a>            </span>
+<span id="mycode3-41"><a href="#mycode3-41"></a>    <span class="co"># 8. Append the next pt to the list of hull_pts</span></span>
+<span id="mycode3-42"><a href="#mycode3-42"></a>    highest_pt <span class="op">=</span> next_highest</span>
+<span id="mycode3-43"><a href="#mycode3-43"></a>    <span class="cf">if</span> ((<span class="bu">abs</span>(highest_pt[<span class="dv">0</span>]<span class="op">-</span><span class="va">self</span>.hull_pts[<span class="dv">0</span>][<span class="dv">0</span>])<span class="op">&lt;</span><span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="dv">8</span>)) <span class="kw">and</span> </span>
+<span id="mycode3-44"><a href="#mycode3-44"></a>             (<span class="bu">abs</span>(highest_pt[<span class="dv">1</span>]<span class="op">-</span><span class="va">self</span>.hull_pts[<span class="dv">0</span>][<span class="dv">1</span>])<span class="op">&lt;</span><span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="dv">8</span>))):</span>
+<span id="mycode3-45"><a href="#mycode3-45"></a>        <span class="cf">break</span></span>
+<span id="mycode3-46"><a href="#mycode3-46"></a>    <span class="cf">else</span>:</span>
+<span id="mycode3-47"><a href="#mycode3-47"></a>        <span class="va">self</span>.hull_pts.append(highest_pt)</span>
+<span id="mycode3-48"><a href="#mycode3-48"></a></span>
+<span id="mycode3-49"><a href="#mycode3-49"></a>        <span class="co"># 9. Updating the not_hull_mask!   {if the difference is really really small}</span></span>
+<span id="mycode3-50"><a href="#mycode3-50"></a>        mask1 <span class="op">=</span> (<span class="bu">abs</span>(<span class="va">self</span>.data[:,<span class="dv">0</span>]<span class="op">-</span>next_highest[<span class="dv">0</span>]) <span class="op">&gt;</span> <span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="dv">10</span>))</span>
+<span id="mycode3-51"><a href="#mycode3-51"></a>        mask2 <span class="op">=</span> (<span class="bu">abs</span>(<span class="va">self</span>.data[:,<span class="dv">1</span>]<span class="op">-</span>next_highest[<span class="dv">1</span>]) <span class="op">&gt;</span> <span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="dv">10</span>))</span>
+<span id="mycode3-52"><a href="#mycode3-52"></a>        not_hull_mask <span class="op">=</span> not_hull_mask <span class="op">*</span> (mask1 <span class="op">+</span> mask2)</span>
+<span id="mycode3-53"><a href="#mycode3-53"></a>        </span>
+<span id="mycode3-54"><a href="#mycode3-54"></a>    <span class="va">self</span>.N <span class="op">=</span> <span class="bu">len</span>(<span class="va">self</span>.data)</span>
+<span id="mycode3-55"><a href="#mycode3-55"></a>    <span class="va">self</span>.not_hull <span class="op">=</span> [<span class="va">self</span>.data[i] <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="va">self</span>.N) <span class="cf">if</span> not_hull_mask[i] <span class="op">==</span> <span class="va">True</span>]</span></code></pre></div>
 <h2 id="improvements-to-the-home-made-algorithm">Improvements to the home made algorithm</h2>
 <p>After the success of coding up the gift wrapping algorithm and finding out that it was not a novel idea, I decided to fine tune my own algorithm to make it more efficient (in terms of computational complexity) before I moved on to trying a different algorithm or even just a toolbox. Some obvious conclusions I came to while ruminating over improving the algorithm were that</p>
 <p><span id="del-theta">
@@ -221,11 +223,58 @@ for potential <em>metrics</em> seemed promising, although their universality and
 A popular algorithm used to sort a list of numbers in increasing order by comparing numbers on either side of a “pivot” element (usually in the middle of the unsorted array). A popular tweaking implements the quick sort algorithm recursively over increasingly smaller halves on either side of the pivots.
 </small>
 </span>
-this algorithm computes half hulls over recursively smaller half-sets until all the points in the hull have been correctly identified. The process is illustrated in the images below:</p>
+this algorithm computes half hulls over recursively smaller half-sets until all the points in the hull have been correctly identified<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>. The process is illustrated in <a href="#quickHull1"><strong>Figures 1</strong></a>, <a href="#quickHull2"><strong>2</strong></a>, <a href="#quickHull3"><strong>3</strong></a> and <a href="#quickHull4"><strong>4</strong></a> below:</p>
+<p><br></p>
+<p>First, the highest and lowest points are identified as shown in <a href="#quickHull1"><strong>Fig. 1</strong></a> and are added to the list of Hull points.</p>
+<p><br></p>
+<span id="quickHull1">
+<img src="../../Images/quickHull1.png" style="width:100.0%" alt="qH1" />
+<center>
+<strong>Fig 1.</strong> Left: the dataset; Right: the highest and lowest points in the dataset
+</center>
+<p><span></p>
+<p><br></p>
+<p>Then, the whole dataset is rotated such that the connecting line between the highest and lowest points becomes horizontal (this is done to so that the visual understanding of following steps becomes easier):</p>
+<span id="quickHull2">
+<center>
+<img src="../../Images/quickHull2.png" style="width:100.0%" alt="qH2" />
+<strong>Fig 2.</strong> Left; The line connecting the highest and lowest points; Right: the whole dataset rotated such that the connecting line is horizontal
+</center>
+<p></span></p>
+<p><br></p>
+<p>After rotating the points, we then consider only the points “above” the new horizontal connecting line and calculate the new highest point (in yellow on the left in <a href="#quickHull3"><strong>Fig. 3</strong></a>, then repeating the process to compute the new lowest point, in the right plot. Both these points are also added to the list of Hull points and the process continues.</p>
+<p><br></p>
+<span id="quickHull3">
+<center>
+<img src="../../Images/quickHull3.png" style="width:100.0%" alt="qH3" />
+<strong>Fig 3.</strong> Left: The upper triangle formed by the horizontal line and the new highest point among the points “above” the line; Right: Similarly constructed lower triangle
+</center>
+<p></span></p>
+<p><br></p>
+<p>In a similar vein, we use the line connecting the right horizontal point (in pink) and the previous highest (in yellow) to calculate a new relative highest among those points that lie “above” here, shown in <a href="#quickHUll4"><strong>Fig. 4</strong></a> in the same orientation as the previous figure for reference</p>
+<span id="quickHull4">
+<center>
+<img src="../../Images/quickHull4.png" style="width:100.0%" alt="qH4" />
+<strong>Fig 4.</strong> The process repeated once more to calculate another Hull point…
+</center>
+<p></span></p>
+<p><br></p>
+<p>The process continues until the new relative highest point yields points already in the list of hull points. This divide and conquer approach which divide points as being on the right, the left or inside a triangle of points at any iteration has an <span class="math inline">\(O(n \hspace{0.2cm} log \hspace{0.075cm} n)\)</span> complexity and is relatively easy to code up.</p>
 <h4 id="grahams-scan">2. Graham’s Scan</h4>
 <h4 id="section"></h4>
 <h2 id="how-does-this-help-with-the-alpha-shape">How does this help with the Alpha shape?</h2>
-<h2 id="improvements">Improvements</h2>
+<p>My aim for the <a href="#2015-08-12-Safe-Online-Data-Driven-Learning"><strong>Safe Online Learning</strong></a> project was to be able to efficiently compute the <a href="#alphaShape"><strong>alpha shapes</strong></a> of obstacles
+as a replacement for a <a href="#kdtree"><strong>kdtree based boundary point detection</strong></a> algorithm
+<span id="kdtree">
+<small class="sidenote">
+<u><strong>kdtree based techniques</strong></u><br>
+Short for <span class="math inline">\(k\)</span>-dimensional trees, they are a space partitioning technique most commonly used for nearest neighbor searching for data that lives in higher dimensional space; Python’s <code>Numpy</code> library has built in data structure of the <code>kdtree</code> type to aid with this.
+</small>
+</span>
+. And as I describe in detail in <a href="#2015-08-12-Alpha-Shape.html"><strong>my post on the ALpha Shape</strong></a>, the alpha complex reaches its limit and stagnates when the radius of the neighborhood around a data point looking to connect with its neighbors gets infinitely large, the outer most boundary of the dataset will simply be its convex hull! And so, the convex hull is mathematically a specific case of the alpha complex and thus the alpha shape, and also an easier way to understand the workings of this class of geometrically driven algorithm involving nearest neighbor considerations in n-dimensional space, and thus this post was made…</p>
+<h2 id="future-scope">Future scope</h2>
+<p>A combination of the Graham’s scan algorithm and a variant of the gift wrapping algorithm called Chan’s algorithm has the fastest time complexity on average for 2 and 3 dimensional datasets and I look forward to implementing it sometime, but until then I will try and work on improvements for my home made algorithm to compare it with previous versions of itself, in terms of time clocked and memory consumed.</p>
+<p>To be continued…</p>
 </div>
 <section id="references" class="post-footnotes">
 <h4>References</h4>
@@ -234,6 +283,7 @@ this algorithm computes half hulls over recursively smaller half-sets until all 
 <hr />
 <ol>
 <li id="fn1"><p><a href="https://stackoverflow.com/questions/71534662/automatically-resize-overflowing-text-with-css">Stack Overflow link</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://www.cs.jhu.edu/~misha/Spring16/06.pdf">Johns Hopkins University slides based on <strong><em>Handbook of Discrete and Computational Geometry</em></strong>, 3<span class="math inline">\(^{rd}\)</span> edition, Jacob E. Goodman, Joseph O’Rourke and Csaba D. Tóth</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
     </section>

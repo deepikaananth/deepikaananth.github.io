@@ -62,14 +62,14 @@
 </section>
 <div class="post-body">
 <h2 id="monte-carlo-simulation">Monte Carlo simulation</h2>
-<p><a href="#sUlam"><strong>Stanislaw Ulam</strong><span class="math inline">\(^*\)</span></a> invented the Monte Carlo
+<p><a href="#sUlam"><strong>Stanislaw Ulam</strong><span class="math inline">\(^*\)</span></a> invented the
 <span id="sUlam">
 <small class="sidenote">
 <u><strong>Stanislaw Ulam</strong></u><br>
 Polish born mathematician whose ideas helped physicist Edward Teller develop the idea of the first thermonuclear weapons during the Manhattan Project <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Ulam also invented the concept of Cellular Automata <a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> and the Monte Carlo technique.
 </small>
-technique during the former’s time at Los Alamos <a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. During a period of convalescence, curiosity in trying and failing to combinatorially calculate the probability of drawing a flush set from a deck of cards, he exhasperatedly resorted to repeating the experiment many times and simply counting up the number of times he managed a successful draw <a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>. Following a collaboration with <a href="#vonNeumann"><strong>John von Neumann</strong><span class="math inline">\(^*\)</span></a>, he then published
 </span>
+Monte Carlo technique during the former’s time at Los Alamos <a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. During a period of convalescence, curiosity in trying and failing to combinatorially calculate the probability of drawing a flush set from a deck of cards, led him to exhasperatedly repeating the experiment many times and simply counting up the number of successful draws <a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>. Following a collaboration with <a href="#vonNeumann"><strong>John von Neumann</strong><span class="math inline">\(^*\)</span></a>, he then published
 <span id="vonNeumann">
 <small class="sidenote">
 <u><strong>John von Neumann</strong></u><br>
@@ -80,14 +80,15 @@ his work, naming the technique the Monte Carlo method after the famous Monte Car
 <p>The technique has since then been used in areas such as optimization, numerical approximation of areas and bounds, and probability estimations.</p>
 <h2 id="monte-carlo-based-approximation">Monte Carlo based approximation</h2>
 <p>The idea is best illustrated with an example (which quickly revealed itself upon closer inspection to be worthy of <a href="#2015-08-12-Estimating-Numpys-randn"><strong>its own post</strong></a>).</p>
-<p>For those familiar with the Python library Numpy, there exists the function <code>random.randn()</code> which returns <a href="#prng"><strong>(pseudo) randomly<span class="math inline">\(^*\)</span></strong></a> sampled
+<p>For those familiar with the Python library <code>Numpy</code>, there exists the function <code>random.randn()</code> which returns <a href="#prng"><strong>(pseudo) randomly<span class="math inline">\(^*\)</span></strong></a> sampled
 <span id="prng">
 <small class="sidenote">
 <u><strong>Pseudo randomness</strong></u><br>
 The nature of computer generated numbers which appear to be statistically random but will repeat or express a discernible pattern after some large, finite number of elements.
 </small>
 </span>
-data of whatever shape is specified inside its arguments. The <code>randn</code> function is also described as choosing its sample points from a standard normal distribution. We can verify this as being the case by trying to sample some N number of scalars using the function and plotting them on a 1-dimensional histogram as shown below where N is gradually increased from 20, to 100, to 1000 to 200000, getting closer and closer to the expected characteristic gaussian bell curve centered at 0.</p>
+data of whatever shape is specified inside its arguments. The <code>randn</code> function is also described as choosing its sample points from a standard normal distribution. To demonstrate the use of the Monte Carlo approximation technique, we can verify the nature of the <code>randn</code> distribution as being Gaussian by trying to sample some N number of scalars using the function and plotting them on a 1-dimensional histogram. As can been seen in the <a href="#fig1"><strong>figures 1</strong></a>, <a href="#fig2"><strong>2</strong></a>, <a href="#fig3"><strong>3</strong></a> and <a href="#fig4"><strong>4</strong></a> below, as N is gradually increased from 20, to 100, to 1000 to 200000, getting closer and closer to the expected characteristic gaussian bell curve centered at 0.</p>
+<p>//Insert the 4 figures of the increasingly more accurate Gaussian curve//</p>
 <h2 id="the-n-ellipse">The n-ellipse</h2>
 <span id="tri-ellipse">
 <small class="sidenote">
@@ -110,7 +111,7 @@ data of whatever shape is specified inside its arguments. The <code>randn</code>
 <p><span class="math display">\[f(x, y, z) = x^2 + y + \frac{13}{z} = g^2(u) + h(u) + \frac{13}{k(u)}\]</span></p>
 <p>This has turned the curve into a parametric form in just a single variable <span class="math inline">\(u\)</span> which can now be integrated with correct bounds to compute the area.</p>
 <p>But, not all curves can be converted into such a parametric form, and so they cannot be integrated in order to analytically compute the area they enclose. And in such cases, numerical alternatives must be considered. For polygons, even non-convex, a <a href="#triangulation"><strong>divide and conquer</strong><span class="math inline">\(^*\)</span></a> approach usually does it.</p>
-<p>So, what about smooth curves like the n-ellipse? Thats’ when I had the idea of using the Monte Carlo simulation to approximate the area of the n-ellipse. The steps I took are explained in order below along with snippets of code.</p>
+<p>So, what about smooth curves like the n-ellipse that cannot be parameterized? Thats’ when I had the idea of using the Monte Carlo simulation to approximate the area of the n-ellipse. The steps I took are explained in order below along with snippets of code.</p>
 <h4 id="initializing-variables">Initializing variables</h4>
 <p>The number of points (the bigger the better as we saw in the toy example), the foci, the constant distance <span class="math inline">\(d\)</span> and empty lists for points inside and outside the n-ellipse to be calculated are defined.</p>
 <div class="sourceCode" id="myCode1"><pre class="sourceCode python"><code class="sourceCode python"><span id="myCode1-1"><a href="#myCode1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, N, foci, distance):</span>
@@ -198,7 +199,7 @@ data of whatever shape is specified inside its arguments. The <code>randn</code>
 <span id="8small">
 <center>
 <figure>
-<img src="../../Images/8ellipseSMALL.png" style="width:120.0%" alt="Fig 6. 8 ellipse with d = 334 with area = 643.6118836249999 sq. units" />
+<img src="../../Images/8ellipseSMALL.png" style="width:105.0%" alt="Fig 6. 8 ellipse with d = 334 with area = 643.6118836249999 sq. units" />
 <figcaption aria-hidden="true"><strong>Fig 6.</strong> 8 ellipse with <span class="math inline">\(d\)</span> = 334 with <strong><em>area</em></strong> = 643.6118836249999 sq. units</figcaption>
 </figure>
 </center>
@@ -206,7 +207,7 @@ data of whatever shape is specified inside its arguments. The <code>randn</code>
 <span id="8med">
 <center>
 <figure>
-<img src="../../Images/8ellipseMED.png" style="width:120.0%" alt="Fig 7. 8 ellipse with d = 650 with area = 16822.928408203123 sq. units" />
+<img src="../../Images/8ellipseMED.png" style="width:105.0%" alt="Fig 7. 8 ellipse with d = 650 with area = 16822.928408203123 sq. units" />
 <figcaption aria-hidden="true"><strong>Fig 7.</strong> 8 ellipse with <span class="math inline">\(d\)</span> = 650 with <strong><em>area</em></strong> = 16822.928408203123 sq. units</figcaption>
 </figure>
 </center>
@@ -214,7 +215,7 @@ data of whatever shape is specified inside its arguments. The <code>randn</code>
 <span id="8big">
 <center>
 <figure>
-<img src="../../Images/8ellipseBIG.png" style="width:115.0%" alt="Fig 8. 8 ellipse with d = 3400 with area = 562697.6306249999 sq. units" />
+<img src="../../Images/8ellipseBIG.png" style="width:100.0%" alt="Fig 8. 8 ellipse with d = 3400 with area = 562697.6306249999 sq. units" />
 <figcaption aria-hidden="true"><strong>Fig 8.</strong> 8 ellipse with <span class="math inline">\(d\)</span> = 3400 with <strong><em>area</em></strong> = 562697.6306249999 sq. units</figcaption>
 </figure>
 </center>

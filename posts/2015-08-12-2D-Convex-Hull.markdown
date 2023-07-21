@@ -11,7 +11,7 @@ title: 2D Convex Hull
    a. [Quick Hull](#quick-hull)
    b. [Graham's Scan](#grahams-scan)
 5. [How does this help with the Alpha shape?](#how-does-this-help-with-the-alpha-shape)
-6. [Improvements](#improvements)
+6. [Future scope](#future-scope)
 <br>[References](#references)
 </div>
 
@@ -21,14 +21,15 @@ title: 2D Convex Hull
 
 One easy way to visualize the convex hull of a set of planar datapoints is - as the shape formed by the datapoints by drawing lines that connect every single pair of them, and then removing all the inner lines such that only the outermost boundary remains.
 
-The convex hull is also the <a href="#polygon-definition">**polygon**$^1$</a> formed by a tautly wound spool of thread 
+The convex hull is also the <a href="#polygon-definition">**polygon**$^1$</a>
 <span id="polygon-definition">
   <small class="sidenote">
   <u>**Polygon**</u><br>
-  A polygon is a closed, convex shape in 2 dimensions.
+  A polygon is a closed, convex shape in 2 dimensions.<br><br>
+  ![**Fig 1.** Some examples of polygons](../../Images/polygons.png){width=100%}
   </small>
 </span>
-wrapped around a collection of datapoints with thumbtacks stuck over them on a piece of cardboard. This way of visualizing makes the following assumptions most readers of this post are very likely to have unconciously already made:
+ formed by a tautly wound spool of thread wrapped around a collection of datapoints with thumbtacks stuck over them on a piece of cardboard. This way of visualizing makes the following assumptions most readers of this post are very likely to have unconciously already made:
 
 1. That there is an infinite amount of thread available, and as a result of which... 
 2. The distance between any two points the thread connects to form an edge, could potentially be infinite.
@@ -49,7 +50,7 @@ Most algorithmic problems like the construction of the convex hull are motivated
   The alpha shape is a generalization of the convex hull when the amount of unspooled thread available to us at every new vertex thumbtack is a certain, possibly small and finite function of a quantity **$\alpha$**. This results in a possibly concave envelope around a set of points, and the convex hull itself when the function of $\alpha$ tends to $\infty$.
   </small>
 </span>
-which you can find [**here**](2015-08-12-Alpha-Shape.html)), which in turn was a necessary part of my ongoing research project on safe online learning of control barrier functions (my post on which you can find [**here**](2015-08-12-Safe-Online-Data-Driven-Learning.html).
+which you can find [**here**](2015-08-12-Alpha-Shape.html)), which in turn was a necessary part of my ongoing research project on safe online learning of control barrier functions (my post on which you can find [**here**](2015-08-12-Safe-Online-Data-Driven-Learning.html).
 
 
 
@@ -57,7 +58,8 @@ Tldr; I used the exercise of writing my own convex hull algorithm as a warm up b
 <span id="point-cloud">
   <small class="sidenote">
   <u>**Point Cloud**</u><br>
-  A collection of data points in three dimensions commonly obtained from LiDAR scans.
+  A collection of data points in three dimensions commonly obtained from LiDAR scans.<br><br>
+  ![**Fig. 2** a 3D point cloud](../../Images/point_cloud.png){width=100%}
   </small>
 </span>
 
@@ -67,7 +69,7 @@ Tldr; I used the exercise of writing my own convex hull algorithm as a warm up b
 ## The home made Gift-Wrapping algorithm 
 
 
-``` {#mycode1 .python .numberLines startFrom="0"}
+```{#mycode1 .python .numberLines startFrom="0"}
 
  highest_pt = self.data[list(self.data[:,1]).index(np.max(self.data[:,1])), :]
     
@@ -89,12 +91,11 @@ Tldr; I used the exercise of writing my own convex hull algorithm as a warm up b
  # Initial rotation matrix is initialized to the identity matrix!
  R = np.array([[1, 0], 
                [0, 1]])
-
 ```
 
 For my first attempt, with no prior research into the different algorithms designed for efficient convex hull computation, I came up with the algorithm presented in pseudo-code below, which happened to be a variant of the gift-wrapping algorithm:
 
-``` {#mycode1 .python .numberLines startFrom="1"}
+```{#mycode2 .python .numberLines startFrom="1"}
  # take N number of points of form (x,y) as input
  # find the highest point
  # rotate all points by a small angle counterclockwise
@@ -108,7 +109,7 @@ In words, what this algorithm [^1] was going to do was slowly rotate the whole d
 
 Here's the function that does it:
 
-``` {#mycode2 .python .numberLines startFrom="0"}
+```{#mycode3 .python .numberLines startFrom="0"}
 
 while cumulative_theta < 2*np.pi:
     count = 0
@@ -165,7 +166,6 @@ while cumulative_theta < 2*np.pi:
         
     self.N = len(self.data)
     self.not_hull = [self.data[i] for i in range(self.N) if not_hull_mask[i] == True]
-
 ```
 
 
@@ -214,11 +214,66 @@ Very similar to <a href="#quick-sort">**Quick Sorting**$^7$</a> which takes a di
   A popular algorithm used to sort a list of numbers in increasing order by comparing numbers on either side of a "pivot" element (usually in the middle of the unsorted array). A popular tweaking implements the quick sort algorithm recursively over increasingly smaller halves on either side of the pivots.
   </small>
 </span>
-this algorithm computes half hulls over recursively smaller half-sets until all the points in the hull have been correctly identified. The process is illustrated in the images below:
+this algorithm computes half hulls over recursively smaller half-sets until all the points in the hull have been correctly identified[^2]. The process is illustrated in <a href="#quickHull1">**Figures 1**</a>, <a href="#quickHull2">**2**</a>, <a href="#quickHull3">**3**</a> and <a href="#quickHull4">**4**</a> below:
+
+<br>
+
+First, the highest and lowest points are identified as shown in <a href="#quickHull1">**Fig. 1**</a> and are added to the list of Hull points.
+
+<br>
+
+<span id="quickHull1">
+![qH1](../../Images/quickHull1.png){width=100%}
+<center>
+**Fig 1.** Left: the dataset; Right: the highest and lowest points in the dataset
+</center>
+<span>
+
+<br>
+
+Then, the whole dataset is rotated such that the connecting line between the highest and lowest points becomes horizontal (this is done to so that the visual understanding of following steps becomes easier):
+
+<span id="quickHull2">
+<center>
+![qH2](../../Images/quickHull2.png){width=100%}
+**Fig 2.** Left; The line connecting the highest and lowest points; Right: the whole dataset rotated such that the connecting line is horizontal
+</center>
+</span>
+
+<br>
+
+After rotating the points, we then consider only the points "above" the new horizontal connecting line and calculate the new highest point (in yellow on the left in <a href="#quickHull3">**Fig. 3**</a>, then repeating the process to compute the new lowest point, in the right plot. Both these points are also added to the list of Hull points and the process continues.
+
+<br>
+
+<span id="quickHull3">
+<center>
+![qH3](../../Images/quickHull3.png){width=100%}
+**Fig 3.** Left: The upper triangle formed by the horizontal line and the new highest point among the points "above" the line; Right: Similarly constructed lower triangle
+</center>
+</span>
+
+<br>
+
+In a similar vein, we use the line connecting the right horizontal point (in pink) and the previous highest (in yellow) to calculate a new relative highest among those points that lie "above" here, shown in <a href="#quickHUll4">**Fig. 4**</a> in the same orientation as the previous figure for reference
+
+<span id="quickHull4">
+<center>
+![qH4](../../Images/quickHull4.png){width=100%}
+**Fig 4.** The process repeated once more to calculate another Hull point...
+</center>
+</span>
+
+<br>
+ 
+The process continues until the new relative highest point yields points already in the list of hull points. This divide and conquer approach which divide points as being on the right, the left or inside a triangle of points at any iteration has an $O(n \hspace{0.2cm} log \hspace{0.075cm} n)$ complexity and is relatively easy to code up.
 
 
 
 #### 2. Graham's Scan
+
+
+
 
 
 
@@ -230,11 +285,28 @@ this algorithm computes half hulls over recursively smaller half-sets until all 
 
 ## How does this help with the Alpha shape?
 
+My aim for the <a href="#2015-08-12-Safe-Online-Data-Driven-Learning">**Safe Online Learning**</a> project was to be able to efficiently compute the <a href="#alphaShape">**alpha shapes**</a> of obstacles 
+as a replacement for a <a href="#kdtree">**kdtree based boundary point detection**</a> algorithm 
+<span id="kdtree">
+  <small class="sidenote">
+  <u>**kdtree based techniques**</u><br>
+  Short for $k$-dimensional trees, they are a space partitioning technique most commonly used for nearest neighbor searching for data that lives in higher dimensional space; Python's ``Numpy`` library has built in data structure of the ``kdtree`` type to aid with this.
+  </small>
+</span>
+. And as I describe in detail in <a href="#2015-08-12-Alpha-Shape.html">**my post on the ALpha Shape**</a>, the alpha complex reaches its limit and stagnates when the radius of the neighborhood around a data point looking to connect with its neighbors gets infinitely large, the outer most boundary of the dataset will simply be its convex hull! And so, the convex hull is mathematically a specific case of the alpha complex and thus the alpha shape, and also an easier way to understand the workings of this class of geometrically driven algorithm involving nearest neighbor considerations in n-dimensional space, and thus this post was made...
 
 
 
 
-## Improvements
+
+
+
+
+## Future scope
+
+A combination of the Graham's scan algorithm and a variant of the gift wrapping algorithm called Chan's algorithm has the fastest time complexity on average for 2 and 3 dimensional datasets and I look forward to implementing it sometime, but until then I will try and work on improvements for my home made algorithm to compare it with previous versions of itself, in terms of time clocked and memory consumed. 
+
+To be continued...
 
 
 
@@ -247,6 +319,6 @@ this algorithm computes half hulls over recursively smaller half-sets until all 
 #### References
 
 [^1]: <a href="https://stackoverflow.com/questions/71534662/automatically-resize-overflowing-text-with-css">Stack Overflow link</a>
-[^2]: :)
+[^2]: <a href="https://www.cs.jhu.edu/~misha/Spring16/06.pdf">Johns Hopkins University slides based on ***Handbook of Discrete and Computational Geometry***, 3$^{rd}$ edition, Jacob E. Goodman, Joseph O'Rourke and Csaba D. Tóth</a>
 
 </div>

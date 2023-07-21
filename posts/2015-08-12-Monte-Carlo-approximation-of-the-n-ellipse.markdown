@@ -19,14 +19,14 @@ title: Monte Carlo approximation of the n-ellipse
 
 <div class="post-body">
 ## Monte Carlo simulation
-<a href="#sUlam">**Stanislaw Ulam**$^*$</a> invented the Monte Carlo 
+<a href="#sUlam">**Stanislaw Ulam**$^*$</a> invented the 
 <span id="sUlam">
   <small class="sidenote">
   <u>**Stanislaw Ulam**</u><br>
   Polish born mathematician whose ideas helped physicist Edward Teller develop the idea of the first thermonuclear weapons during the Manhattan Project [^2]. Ulam also invented the concept of Cellular Automata [^3] and the Monte Carlo technique.
   </small>
- technique during the former's time at Los Alamos [^1]. During a period of convalescence, curiosity in trying and failing to combinatorially calculate the probability of drawing a flush set from a deck of cards, he exhasperatedly resorted to repeating the experiment many times and simply counting up the number of times he managed a successful draw [^5]. Following a collaboration with <a href="#vonNeumann">**John von Neumann**$^*$</a>, he then published 
 </span>
+Monte Carlo technique during the former's time at Los Alamos [^1]. During a period of convalescence, curiosity in trying and failing to combinatorially calculate the probability of drawing a flush set from a deck of cards, led him to exhasperatedly repeating the experiment many times and simply counting up the number of successful draws [^5]. Following a collaboration with <a href="#vonNeumann">**John von Neumann**$^*$</a>, he then published 
 <span id="vonNeumann">
   <small class="sidenote">
   <u>**John von Neumann**</u><br>
@@ -43,16 +43,16 @@ The technique has since then been used in areas such as optimization, numerical 
 
 The idea is best illustrated with an example (which quickly revealed itself upon closer inspection to be worthy of <a href="#2015-08-12-Estimating-Numpys-randn">**its own post**</a>).
 
-For those familiar with the Python library Numpy, there exists the function ``random.randn()`` which returns <a href="#prng">**(pseudo) randomly$^*$**</a> sampled 
+For those familiar with the Python library ``Numpy``, there exists the function ``random.randn()`` which returns <a href="#prng">**(pseudo) randomly$^*$**</a> sampled 
 <span id="prng">
   <small class="sidenote">
   <u>**Pseudo randomness**</u><br>
   The nature of computer generated numbers which appear to be statistically random but will repeat or express a discernible pattern after some large, finite number of elements.
   </small>
 </span>
-data of whatever shape is specified inside its arguments. The ``randn`` function is also described as choosing its sample points from a standard normal distribution. We can verify this as being the case by trying to sample some N number of scalars using the function and plotting them on a 1-dimensional histogram as shown below where N is gradually increased from 20, to 100, to 1000 to 200000, getting closer and closer to the expected characteristic gaussian bell curve centered at 0.
+data of whatever shape is specified inside its arguments. The ``randn`` function is also described as choosing its sample points from a standard normal distribution. To demonstrate the use of the Monte Carlo approximation technique, we can verify the nature of the ``randn`` distribution as being Gaussian by trying to sample some N number of scalars using the function and plotting them on a 1-dimensional histogram. As can been seen in the <a href="#fig1">**figures 1**</a>, <a href="#fig2">**2**</a>, <a href="#fig3">**3**</a> and <a href="#fig4">**4**</a> below, as N is gradually increased from 20, to 100, to 1000 to 200000, getting closer and closer to the expected characteristic gaussian bell curve centered at 0.
 
-
+//Insert the 4 figures of the increasingly more accurate Gaussian curve//
 
 
 ## The n-ellipse
@@ -92,7 +92,7 @@ This has turned the curve into a parametric form in just a single variable $u$ w
 
 But, not all curves can be converted into such a parametric form, and so they cannot be integrated in order to analytically compute the area they enclose. And in such cases, numerical alternatives must be considered. For polygons, even non-convex, a <a href="#triangulation">**divide and conquer**$^*$</a> approach usually does it.
 
-So, what about smooth curves like the n-ellipse? Thats' when I had the idea of using the Monte Carlo simulation to approximate the area of the n-ellipse. The steps I took are explained in order below along with snippets of code.
+So, what about smooth curves like the n-ellipse that cannot be parameterized? Thats' when I had the idea of using the Monte Carlo simulation to approximate the area of the n-ellipse. The steps I took are explained in order below along with snippets of code.
 
 
 
@@ -210,17 +210,17 @@ Three pairs of images of an 8 focus ellipse with $d$ values 334, 650 and 3400 ar
 
 <span id="8small">
 <center>
-![**Fig 6.** 8 ellipse with  $d$ = 334  with  ***area*** = 643.6118836249999  sq. units](../../Images/8ellipseSMALL.png){width=120%}
+![**Fig 6.** 8 ellipse with  $d$ = 334  with  ***area*** = 643.6118836249999  sq. units](../../Images/8ellipseSMALL.png){width=105%}
 </center>
 </span>
 <span id="8med">
 <center>
-![**Fig 7.** 8 ellipse with  $d$ = 650  with  ***area*** = 16822.928408203123  sq. units](../../Images/8ellipseMED.png){width=120%}
+![**Fig 7.** 8 ellipse with  $d$ = 650  with  ***area*** = 16822.928408203123  sq. units](../../Images/8ellipseMED.png){width=105%}
 </center>
 </span>
 <span id="8big">
 <center>
-![**Fig 8.** 8 ellipse with  $d$ = 3400  with  ***area*** = 562697.6306249999  sq. units](../../Images/8ellipseBIG.png){width=115%}
+![**Fig 8.** 8 ellipse with  $d$ = 3400  with  ***area*** = 562697.6306249999  sq. units](../../Images/8ellipseBIG.png){width=100%}
 </center>
 </span>
 
