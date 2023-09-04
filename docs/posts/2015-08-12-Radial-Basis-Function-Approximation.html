@@ -1,0 +1,324 @@
+<!doctype html>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<html lang="en">
+
+<style>
+        body {
+                background-color: #FFFFF9;
+        }
+</style>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>My Hakyll Blog - Radial Basis Function Interpolation</title>
+        <link rel="stylesheet" href="../css/default.css" />
+	<link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    <head>
+    <body>
+        <header>
+
+	    <div class="logo">
+                <a class="small" href="../">Deepika Anantharaman</a>
+            </div>
+	    <nav>
+                <a class="small" href="../about.html">About</a>
+                <a class="small" href="../contact.html">Contact</a>
+                <a class="small" href="../archive.html">Archive</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>Radial Basis Function Interpolation</h1>
+            <article>
+<style>
+        body {
+                background-color: #FFFFFF;
+        }
+</style>
+    <section class="header">
+        Posted on August 12, 2015
+        
+    </section>
+
+    <section>
+	<section id="table-of-contents" class="toc-content">
+<h4><u>Table of Contents</u></h4>
+<ol type="1">
+<li><a href="#interpolating-a-function">Interpolating a Function</a></li>
+<li><a href="#radial-basis-functions">Radial Basis Functions</a></li>
+<li><a href="#a-1d-example">A 1D example</a></li>
+<li><a href="#a-2d-example">A 2D example</a>
+<br><a href="#references">References</a></li>
+</ol>
+</section>
+<div class="post-body">
+
+<span id="sinePade">
+<center>
+<figure>
+<img src="../../Images/padeSine.png" style="width:100.0%" alt="Fig 1. The sine function and its Padé approximation" />
+<figcaption aria-hidden="true"><strong>Fig 1.</strong> The sine function and its Padé approximation</figcaption>
+</figure>
+</center>
+<p></span></p>
+<h2 id="interpolating-a-function">Interpolating a Function</h2>
+A quick search on the internet will show many existing techniques for function <a href="#appr"><strong>approximation</strong></a> through <a href="#interp"><strong>interpolation</strong></a>. A lot of texts talk about the differences between the two words and also use them interchangeably, much to the viewer’s chagrin. However careful reading<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> <a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> and <a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> reveals that one of the difference lies in how early <a href="#smooth"><strong>smoothness</strong></a> is <span id="smooth"> considered/incorporated into the construction process.<br />
+<small class="sidenote">
+<u><strong>Smoothness</strong></u><br>
+A function is considered smooth if it is differentiable everywhere. A simple example is the tip of a cone in 3D where the tangent line can assume infinitely many possible slopes when viewed from different directions, thus making the derivative (gradient in this case) ambiguous and thus, undefined.<br><br>
+<center>
+<figure>
+<img src="../../Images/sin_1_over_x.png" style="width:100.0%" alt="Fig. 2 The sin(1/x) function which is not smooth and not differentiable at 0" />
+<figcaption aria-hidden="true"><strong>Fig. 2</strong> The sin(1/x) function which is not smooth and not differentiable at 0</figcaption>
+</figure>
+</center>
+<p></small>
+</span></p>
+<p>Both approximation and interpolation are techniques used to construct an unknown continuous function (which we will call the <em>true function</em>) for which we only have a discrete set of samples available to start with.</p>
+<p>Approximation is a technique that constructs a smooth function which imitates the unknown continuous function by ensuring that the error of approximation is lesser than a certain acceptable upperbound (usually <span class="math inline">\(\varepsilon\)</span>) everywhere. <a href="#sinePade"><strong>Fig 1.</strong></a> shows a <a href="#pade"><strong>Padé approximation</strong></a> for a sine function over a very short interval, already diverging from the desired values past <span class="math inline">\(2\pi/3\)</span>. Even a linear approximation as the tangent line to a function is also a locally accurate approximation for most functions, a premise that a lot of system modeling is built on<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>, a classic example of a case where smoothness is not ensured. Thus, any locally linear approach to approximation will require “smoothing” later on to fit the approximation of the true function.</p>
+Interpolation on the other hand ensures that the constructed function will pass through certain points called <a href="#knot"><strong>knot points</strong></a> or control points without fail!<span id="knot">
+<small class="sidenote">
+<u><strong>Knot Points</strong></u>
+A term commonly used in robot path planning for smooth spline generation<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>, knot points enforce constraints on the smooth curve for the trajectory through space for a robot agent by solving many small boundary value problems where the “boundaries” of individual smooth curves terminate at such knot points.
+<center>
+<figure>
+<img src="../../Images/traj.png" style="width:100.0%" alt="A B-spline based quadrotor trajectory with control (knot) points" />
+<figcaption aria-hidden="true">A B-spline based quadrotor trajectory with control (knot) points</figcaption>
+</figure>
+</center>
+<p></small>
+</span> And for the cases where discrete samples are available, interpolation is guaranteed to fit a continuous function that will always pass through these discrete sample points while also ensuring smoothness and continuity everywhere.</p>
+<p>Whether or not the interpolation function accurately represents the true function in the spaces in between the knot points is a question I hope to address soon as a part of a <a href="cbf_project"><strong>bigger project</strong></a>, but until then, I will only talk about the construction process itself and limit this article to the implementation of a radial basis kernel function based interpolation along with demonstrations of examples in 1D and 2D.</p>
+<h2 id="radial-basis-functions">Radial Basis Functions</h2>
+<p>Radial Basis functions are popular choices to perform interpolations with. The reason is multifold.</p>
+<p>The word radial describes the property of the function as being symmetric about a central axis that is perpendicular to the plane of the function - i.e when viewed from the top or from below. <a href="#gaus"><strong>Fig 3.</strong></a> shows an example of a radially symmetric gaussian from different perspectives.</p>
+<span id="gaus">
+<center>
+<figure>
+<img src="../../Images/gauss.png" style="width:90.0%" alt="Fig 3. A bivariate gaussian with radial symmetry" />
+<figcaption aria-hidden="true"><strong>Fig 3.</strong> A bivariate gaussian with radial symmetry</figcaption>
+</figure>
+</center>
+<p></span></p>
+<p><span id="rbfs">
+<small class="sidenote">
+<u><strong>RBF gaussians</strong></u><br>
+Various RBF gaussians with different values of parameter <span class="math inline">\(\varepsilon\)</span> which is inversely proportional to the standard deviation.
+<img src="../../Images/gaussians1.png" style="width:80.0%" alt="Gaussians like in Fig 3. with different values of parameter \varepsilon which is inversely proportional to the standard deviation" />
+<img src="../../Images/gaussians3.png" style="width:80.0%" alt=".." />
+</small>
+</span></p>
+<p>One reason for why they are attractive is because radial symmetry makes these functions rather well behaved, in that they behave predictably in the neighborhood of a point at which they are centered and add homogenously. They have no “orientation” since they are symmetric along all variable axes. And popular choices such as the gaussian basis functions are smooth and differentiable.</p>
+<h2 id="a-1d-example">A 1D example</h2>
+<p>Now I present a 1D example for the interpolation of a true function that we first construct as the weighted sum of sunusoids of different frequencies and phase displacements.</p>
+<div class="sourceCode" id="codeBlock1"><pre class="sourceCode python"><code class="sourceCode python"><span id="codeBlock1-1"><a href="#codeBlock1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of sample points in the function &quot;f&quot;</span></span>
+<span id="codeBlock1-2"><a href="#codeBlock1-2" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> <span class="dv">500</span></span>
+<span id="codeBlock1-3"><a href="#codeBlock1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock1-4"><a href="#codeBlock1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The epsilon parameter of the phi() kernel function</span></span>
+<span id="codeBlock1-5"><a href="#codeBlock1-5" aria-hidden="true" tabindex="-1"></a>eps <span class="op">=</span> <span class="fl">1.5</span>                                  </span>
+<span id="codeBlock1-6"><a href="#codeBlock1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock1-7"><a href="#codeBlock1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># The xPts at which the function &quot;f&quot; is originally sampled/spaced</span></span>
+<span id="codeBlock1-8"><a href="#codeBlock1-8" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="fl">2.5</span><span class="op">*</span>np.pi, N)</span>
+<span id="codeBlock1-9"><a href="#codeBlock1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock1-10"><a href="#codeBlock1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Array of the 7 frequencies of the 7 sinusoids that are going to be combined</span></span>
+<span id="codeBlock1-11"><a href="#codeBlock1-11" aria-hidden="true" tabindex="-1"></a>omega <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">1</span>])        </span>
+<span id="codeBlock1-12"><a href="#codeBlock1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock1-13"><a href="#codeBlock1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Array of the 7 phase offsets </span></span>
+<span id="codeBlock1-14"><a href="#codeBlock1-14" aria-hidden="true" tabindex="-1"></a>phase <span class="op">=</span> np.array([np.pi<span class="op">/</span><span class="dv">5</span>, np.pi<span class="op">/</span><span class="dv">3</span>, <span class="op">-</span>np.pi<span class="op">/</span><span class="dv">4</span>, np.pi<span class="op">/</span><span class="dv">5</span>, np.pi<span class="op">/</span><span class="dv">2</span>, <span class="op">-</span>np.pi<span class="op">/</span><span class="dv">5</span>, <span class="op">-</span>np.pi<span class="op">/</span><span class="dv">3</span>])      </span>
+<span id="codeBlock1-15"><a href="#codeBlock1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock1-16"><a href="#codeBlock1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Initializing the N point vector f</span></span>
+<span id="codeBlock1-17"><a href="#codeBlock1-17" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> np.zeros_like(theta)</span>
+<span id="codeBlock1-18"><a href="#codeBlock1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock1-19"><a href="#codeBlock1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating &quot;f&quot; by sequentially adding together 7 sinusoids</span></span>
+<span id="codeBlock1-20"><a href="#codeBlock1-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(omega)):</span>
+<span id="codeBlock1-21"><a href="#codeBlock1-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># the frequency omega[i] and with phase displacement phase[i]</span></span>
+<span id="codeBlock1-22"><a href="#codeBlock1-22" aria-hidden="true" tabindex="-1"></a>    f <span class="op">+=</span> np.sin(theta<span class="op">*</span>omega[i] <span class="op">+</span> phase[i])</span></code></pre></div>
+<p>This produces a very interesting function “f” shown in <a href="#fig4"><strong>Fig. 4</strong></a>.</p>
+<span id="fig4">
+<center>
+<figure>
+<img src="../../Images/combSine.png" style="width:100.0%" alt="Fig. 4 f a linear combination of 7 sinusoids of different frequencies and phase offsets" />
+<figcaption aria-hidden="true"><strong>Fig. 4</strong> <span class="math inline">\(f\)</span> a linear combination of 7 sinusoids of different frequencies and phase offsets</figcaption>
+</figure>
+</center>
+<p></span></p>
+<p>Now using a gaussian rbf function modeled as:</p>
+<p><span class="math display">\[ \phi(r) = e^{-(\varepsilon r)^2} \]</span></p>
+<p>where <span class="math inline">\(r\)</span> is the point at which the <a href="#pdf"><strong>PDF</strong></a> is evaluated <span id="pdf">
+<small class="sidenote">
+<u><strong>Probability Density Function</strong></u>
+The PDF of a probability distribution is the measure of the likelihood of that sample at which it is evaluated and provides such a relative score to all sample values in the interval of the continuous distribution.
+</small>
+</span> and <span class="math inline">\(\varepsilon\)</span> is a quantity inversely proportional to the standard deviation, we perform the interpolation by solving a very simple matrix (linear) equation of the form:</p>
+<p><span class="math display">\[B w = f\]</span></p>
+<p><span class="math display">\[
+\begin{bmatrix}
+        \phi(||x_0 - x_0||) &amp; \phi(||x_0 - x_1||) &amp; ... &amp; \phi(||x_0 - x_n||)\\
+        \phi(||x_1 - x_0||) &amp; \phi(||x_1 - x_1||) &amp; ... &amp; \phi(||x_1 - x_n||)\\
+        \phi(||x_2 - x_0||) &amp; \phi(||x_2 - x_1||) &amp; ... &amp; \phi(||x_2 - x_n||)\\
+         ...\\
+         ...\\
+        \phi(||x_n - x_0||) &amp; \phi(||x_n - x_1||) &amp; ... &amp; \phi(||x_n - x_n||) 
+\end{bmatrix} 
+\begin{bmatrix}
+	w_0\\
+	w_1\\
+	w_2\\
+	..\\
+	..\\
+	w_n\\ 
+\end{bmatrix}
+=\begin{bmatrix} 
+	f(x_0)\\
+	f(x_1)\\
+	f(x_2)\\
+	..\\
+	..\\
+	f(x_n)\\
+\end{bmatrix}
+\]</span>
+for the discrete points <span class="math inline">\(\{ x_0, x_1, x_2 ... x_ \} \in S_x\)</span> sampled from the function <span class="math inline">\(f\)</span>.</p>
+<p>The leftmost matrix, also called B, or the “interpolation matrix” is constructed by applying the rbf basis function <span class="math inline">\(\phi(.)\)</span> upon the norm of the difference between each sample point <span class="math inline">\(x_i\)</span> with every discrete sample point from <span class="math inline">\(x_0\)</span> to <span class="math inline">\(x_n\)</span>. The right hand side is a vector of the true function values at the sample points in order.</p>
+<p>The aim is then to “learn” the vector of weights - the vector of values <span class="math inline">\(w_0, w_1, w_2 ... w_n\)</span> such that once solved, we can then interpret the same matrix equation for every single row <span class="math inline">\(\times\)</span> weight vector product as shown below for the 0-th row - a weighted summation of the basis function centered at each <span class="math inline">\(x_i \in S_x\)</span>:</p>
+<p><span class="math display">\[
+\begin{bmatrix}
+	\phi(||x_0-x_0||) &amp; \phi(||x_0-x_1||) &amp; ... &amp; \phi(||x_0-x_n||)
+\end{bmatrix}
+\begin{bmatrix}
+	w_0\\
+	w_1\\
+	w_2\\
+	.. \\
+	w_n
+\end{bmatrix} = f(x_0)
+\]</span></p>
+<p>which can be used similarly for any <span class="math inline">\(x_j \notin S_x\)</span> in the domain of <span class="math inline">\(f\)</span> once after the weight vector is solved for as:</p>
+<p><span class="math display">\[ w_0 \phi(x_j-x_0) + w_1 \phi(x_j-x_1) + w_2 \phi(x_j-x_2) + ... + w_n \phi(x_j-x_n) = f(x_j)\]</span></p>
+<p>And these weights in the <span class="math inline">\(w\)</span> column vector can be solved for by inverting the interpolation matrix B and multiplying it with the vector of true function values <span class="math inline">\(f(x_i) \hspace{0.2cm} \forall \hspace{0.2cm} x_i \in S_x\)</span> as:</p>
+<p><span class="math display">\[ w = B^{-1} f\]</span></p>
+<p>which of course requires that the B interpolation matrix be invertible!</p>
+<p>The following snippets of code define functions for the rbf basis and for the interpolation matrix construction:</p>
+<div class="sourceCode" id="codeBlock2"><pre class="sourceCode python"><code class="sourceCode python"><span id="codeBlock2-1"><a href="#codeBlock2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># define a function for the rbf basis:</span></span>
+<span id="codeBlock2-2"><a href="#codeBlock2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock2-3"><a href="#codeBlock2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> phi(eps, r):</span>
+<span id="codeBlock2-4"><a href="#codeBlock2-4" aria-hidden="true" tabindex="-1"></a>    phi_at_r <span class="op">=</span> np.exp(<span class="op">-</span>(eps<span class="op">*</span>r)<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="codeBlock2-5"><a href="#codeBlock2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> phi_at_r</span>
+<span id="codeBlock2-6"><a href="#codeBlock2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock2-7"><a href="#codeBlock2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock2-8"><a href="#codeBlock2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock2-9"><a href="#codeBlock2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># define a function to make the interpolation matrix</span></span>
+<span id="codeBlock2-10"><a href="#codeBlock2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock2-11"><a href="#codeBlock2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> makePhiMatrix(xPts, kernel, eps):    </span>
+<span id="codeBlock2-12"><a href="#codeBlock2-12" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(xPts)                    <span class="co"># number of points in set Sx</span></span>
+<span id="codeBlock2-13"><a href="#codeBlock2-13" aria-hidden="true" tabindex="-1"></a>    r, c <span class="op">=</span> np.meshgrid(np.arange(n), np.arange(n))</span>
+<span id="codeBlock2-14"><a href="#codeBlock2-14" aria-hidden="true" tabindex="-1"></a>    r    <span class="op">=</span> r.flatten()               <span class="co"># row indices of the B matrix elements</span></span>
+<span id="codeBlock2-15"><a href="#codeBlock2-15" aria-hidden="true" tabindex="-1"></a>    c    <span class="op">=</span> c.flatten()               <span class="co"># col indices of the B matrix elements</span></span>
+<span id="codeBlock2-16"><a href="#codeBlock2-16" aria-hidden="true" tabindex="-1"></a>    B <span class="op">=</span> phi(eps, xPts[r]<span class="op">-</span>xPts[c])    <span class="co"># each element in B is phi(eps, x_i-x_j)</span></span>
+<span id="codeBlock2-17"><a href="#codeBlock2-17" aria-hidden="true" tabindex="-1"></a>    B <span class="op">=</span> B.reshape(n, n)              <span class="co"># reshape n**2 col vector B into a square matrix</span></span>
+<span id="codeBlock2-18"><a href="#codeBlock2-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> B</span></code></pre></div>
+<p>And then the sample points are used to solve for the weight vector <span class="math inline">\(w\)</span>:</p>
+<div class="sourceCode" id="codeBlock3"><pre class="sourceCode python"><code class="sourceCode python"><span id="codeBlock3-1"><a href="#codeBlock3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setting up the problem to solve the weights:</span></span>
+<span id="codeBlock3-2"><a href="#codeBlock3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock3-3"><a href="#codeBlock3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># numSamp: number of discrete sample points </span></span>
+<span id="codeBlock3-4"><a href="#codeBlock3-4" aria-hidden="true" tabindex="-1"></a>numSamp <span class="op">=</span> <span class="dv">15</span><span class="op">;</span>      </span>
+<span id="codeBlock3-5"><a href="#codeBlock3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock3-6"><a href="#codeBlock3-6" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> N <span class="op">//</span> numSamp </span>
+<span id="codeBlock3-7"><a href="#codeBlock3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock3-8"><a href="#codeBlock3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Make a vector of integers - numSamp number of points</span></span>
+<span id="codeBlock3-9"><a href="#codeBlock3-9" aria-hidden="true" tabindex="-1"></a>sampInd  <span class="op">=</span> np.linspace(<span class="dv">0</span>, numSamp<span class="op">*</span>n<span class="op">-</span><span class="dv">1</span>, numSamp).astype(<span class="bu">int</span>)</span>
+<span id="codeBlock3-10"><a href="#codeBlock3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock3-11"><a href="#codeBlock3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># sample the true function only at the sampInd indices</span></span>
+<span id="codeBlock3-12"><a href="#codeBlock3-12" aria-hidden="true" tabindex="-1"></a>fSamples <span class="op">=</span> f[sampInd]</span>
+<span id="codeBlock3-13"><a href="#codeBlock3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock3-14"><a href="#codeBlock3-14" aria-hidden="true" tabindex="-1"></a><span class="co"># sample the theta values at the same indices</span></span>
+<span id="codeBlock3-15"><a href="#codeBlock3-15" aria-hidden="true" tabindex="-1"></a>xPts     <span class="op">=</span> theta[sampInd] </span>
+<span id="codeBlock3-16"><a href="#codeBlock3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock3-17"><a href="#codeBlock3-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Make the interpolation &quot;B&quot; matrix</span></span>
+<span id="codeBlock3-18"><a href="#codeBlock3-18" aria-hidden="true" tabindex="-1"></a>B <span class="op">=</span> makePhiMatrix(xPts, phi, eps)    </span>
+<span id="codeBlock3-19"><a href="#codeBlock3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="codeBlock3-20"><a href="#codeBlock3-20" aria-hidden="true" tabindex="-1"></a><span class="co"># compute he weights</span></span>
+<span id="codeBlock3-21"><a href="#codeBlock3-21" aria-hidden="true" tabindex="-1"></a>wts <span class="op">=</span> np.linalg.inv(B) <span class="op">@</span> fSamples.reshape(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)      <span class="co"># w = B_inv @ f</span></span>
+<span id="codeBlock3-22"><a href="#codeBlock3-22" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<p>The interpolated function so obtained for different values of the <span class="math inline">\(\varepsilon\)</span> parameter of the rbf gaussian are shown below in <a href="#fig5"><strong>Fig. 5</strong></a></p>
+<span id="fig5">
+<center>
+<figure>
+<img src="../../Images/epsVals.png" style="width:100.0%" alt="Fig 5. True function f plotted against the interpolated function using rbf bases with different parameter \varepsilon values" />
+<figcaption aria-hidden="true"><strong>Fig 5.</strong> True function <span class="math inline">\(f\)</span> plotted against the interpolated function using rbf bases with different parameter <span class="math inline">\(\varepsilon\)</span> values</figcaption>
+</figure>
+</center>
+<p></span></p>
+<p>From observation, the best fit was obtained for <span class="math inline">\(\varepsilon\)</span>=0.7, the error plot for which is shown in <a href="#fig6"><strong>Fig. 6</strong></a>.</p>
+<span id="fig6">
+<center>
+<figure>
+<img src="../../Images/error1D.png" style="width:100.0%" alt="Fig. 6 The error, i.e the difference between true f and the interpolated f for the choice of \varepsilon=0.7" />
+<figcaption aria-hidden="true"><strong>Fig. 6</strong> The error, i.e the difference between true <span class="math inline">\(f\)</span> and the interpolated <span class="math inline">\(f\)</span> for the choice of <span class="math inline">\(\varepsilon\)</span>=0.7</figcaption>
+</figure>
+</center>
+<p></span></p>
+<h2 id="a-2d-example">A 2D example</h2>
+<p><a href="#fig7"><strong>Fig. 7</strong></a> shows an example of a function in 2 dimensions (bivariate) of the form <span class="math inline">\(z = f(x, y)\)</span> sampled at 225 points in a uniform 15 by <span class="math inline">\(\times\)</span> 15 grid, constructed using an additive combination of independent sinusoids in terms of variables <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>:</p>
+<p><span class="math display">\[ z = 0.6 \sin(0.3x + \pi/7) + 0.95 \cos(0.8y) + 0.85 \sin(0.085x + 4 \pi/13) + \sin(0.38y + 2\pi/3) \]</span></p>
+<p><span id="fig7">
+<img src="../../Images/samp2.png" style="width:100.0%" alt="Fig. 7 Sample bivariate function with the 15 \times 15 grid of sample points" />
+<span></p>
+<p>The same construction process as with the 1D case was followed for the rbf based interpolation for the 2D example, described step wise below:</p>
+<center>
+<figure>
+<img src="../../Images/2Dexmp.png" style="width:90.0%" alt="Fig. 8 4 steps of the interpolation process for the 2D interpolation example function shown 500 steps apart" />
+<figcaption aria-hidden="true"><strong>Fig. 8</strong> 4 steps of the interpolation process for the 2D interpolation example function shown 500 steps apart</figcaption>
+</figure>
+</center>
+<ol type="1">
+<li>The formula for the interpolation (computing the estimated (r_i)) at any point <span class="math inline">\(r_i\)</span> in the domain of the function <span class="math inline">\(f\)</span> is given as:
+<span class="math display">\[ f(x_i) = w_0 \phi(||x_i-x_0||) + w_1 \phi(||x_i-x_1||) + ... + w_n \phi(||x_i-x_n||) \]</span></li>
+<li>This can be read as the sum of points at each of the discrete sampled <span class="math inline">\(x_0\)</span>, <span class="math inline">\(x_1\)</span> … <span class="math inline">\(x_n\)</span> points from a gaussian <span class="math inline">\(\phi(r) = e^{-(\varepsilon r)^2}\)</span> centered at <span class="math inline">\(x_i \in S_x\)</span>, each term weighted by the corresponding <span class="math inline">\(w_i\)</span> term we solved for.</li>
+<li>This means that we begin the interpolation at this <span class="math inline">\(x_i\)</span> of interest (this could be anywhere in the domain), let’s say at the 53-rd index value of the 500 point <span class="math inline">\(f\)</span> we were interpolating in our 1D example.</li>
+<li>The interpolation at this 53-rd <span class="math inline">\(f[52]\)</span> value begins with the construction of a gaussian with some chosen <span class="math inline">\(\varepsilon\)</span> at this <span class="math inline">\(x_{52}\)</span> value in the domain as shown in <a href="#fig11"><strong>Fig. 11</strong></a>:</li>
+</ol>
+<span id="fig11">
+<center>
+<figure>
+<img src="../../Images/fig11.png" style="width:100.0%" alt="Fig. 11 The 53^{rd} index value of the domain and a gaussian with \varepsilon=0.6 centered at this sample" />
+<figcaption aria-hidden="true"><strong>Fig. 11</strong> The <span class="math inline">\(53^{rd}\)</span> index value of the domain and a gaussian with <span class="math inline">\(\varepsilon=0.6\)</span> centered at this sample</figcaption>
+</figure>
+</center>
+<p></span></p>
+<ol start="5" type="1">
+<li>Now the values at the set of discrete samples <span class="math inline">\(x_i \in S_x\)</span> are computed along the domain (theta in this example):</li>
+</ol>
+<span id="fig12">
+<center>
+<figure>
+<img src="../../Images/fig12.png" style="width:100.0%" alt="Fig. 12 Discrete samples along the domain from the gaussian centered at x_{52} considered for the interpolation of the f(52) value" />
+<figcaption aria-hidden="true"><strong>Fig. 12</strong> Discrete samples along the domain from the gaussian centered at <span class="math inline">\(x_{52}\)</span> considered for the interpolation of the <span class="math inline">\(f(52)\)</span> value</figcaption>
+</figure>
+</center>
+<p></span></p>
+<ol start="6" type="1">
+<li>Finally, all these blue triangle discrete sample values in <a href="#fig12"><strong>Fig. 12</strong></a> are scaled by the corresponding weights we have precalculated <span class="math inline">\(w_i\)</span> and add them together to produce the single correct value of the the interpolated function at index 52 which matches the original function value <span class="math inline">\(f(52)\)</span> perfectly!</li>
+</ol>
+<h3 id="references">References</h3>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="#https://urbain.vaes.uk/static/teaching/scientific_computing/build/interpolation_approximation.pdf"><em>Interpolation and Approximation</em></a> Chapter 2 from <a href="#urbain.vaes.uk">urbain.vaes.uk</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="#https://math.stackexchange.com/a/7129">J. M. ain’t a mathematician, <em>Polynomial fitting</em> -<em>how to fit and what is polynomial fitting</em>: https://math.stackexchange.com/q/7129</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><a href="#http://math.iit.edu/~fass/578_ch6.pdf">IIT math notes Chapter 6</a><a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><a href="#https://www.collimator.ai/reference-guides/what-is-linearization-of-nonlinear-systems">Linearization of Nonlinear systems on Collimator.ai</a><a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><a href="#http://www2.informatik.uni-freiburg.de/~lau/students/Sprunk2008.pdf"><em>Planning Motion Trajectories for Mobile Robots Using Splines</em>, by Christopher Sprunk</a><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+    </section>
+</article>
+
+        </main>
+
+        <footer>
+            website source code on <a href="my_repository_link">github</a>
+        </footer>
+    </body>
+</html>
